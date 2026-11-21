@@ -163,6 +163,9 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 
 .notice { background: rgba(255,84,112,.15); border: 2px solid var(--bad); border-radius: 6px; padding: 12px 14px; font-size: .92rem; line-height: 1.45; }
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--legend); color: var(--ink); font-weight: 700; padding: 10px 16px; border-radius: 4px; box-shadow: 0 4px 0 #a35a00; z-index: 20; }
+.update { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 30; max-width: calc(100% - 32px);
+  appearance: none; cursor: pointer; border: 3px solid #fff3b0; border-radius: 6px; padding: 12px 16px; font: 700 .95rem var(--body); color: var(--ink);
+  background: linear-gradient(180deg, #fff27a, var(--legend)); box-shadow: 0 5px 0 #a35a00, 0 10px 30px rgba(0,0,0,.4); }
 .foot { font-size: .75rem; color: var(--muted); line-height: 1.5; text-align: center; }
 .namerow { display: flex; gap: 10px; align-items: center; }
 .choice { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -391,6 +394,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   <p class="foot">Der Stand wird online gespeichert. Mit demselben Code geht's am nächsten Tag einfach weiter.<br>Inoffizielles Fan-Tool, nicht von Epic Games.</p>
 </main>
 <div class="toast" id="toast" hidden></div>
+<button class="update" id="updateBtn" type="button" hidden>Neue Version da – hier tippen zum Aktualisieren</button>
 
 <script src="supabase.js"></script>
 <script>
@@ -880,6 +884,24 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   });
   window.addEventListener("pagehide", flush);
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
+
+  /* ---------- Neue Version erkennen ---------- */
+  var VERSION = "20261121183256", newV = null;
+  async function checkVersion() {
+    try {
+      var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) return;
+      var v = (await r.json()).v;
+      if (v && v !== VERSION) { newV = v; $("updateBtn").hidden = false; }
+    } catch (e) {}
+  }
+  $("updateBtn").addEventListener("click", async function () {
+    try { await flush(); } catch (e) {}
+    location.replace(location.pathname + "?v=" + encodeURIComponent(newV || Date.now()) + location.hash);
+  });
+  checkVersion();
+  setInterval(function () { if (!document.hidden) checkVersion(); }, 60000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) checkVersion(); });
 
   /* ---------- Start ---------- */
   showChoice();
