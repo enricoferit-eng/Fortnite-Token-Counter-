@@ -209,6 +209,23 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
 .pz-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--night); border-radius: 4px; padding: 6px 6px 6px 10px; font-size: .88rem; font-variant-numeric: tabular-nums; }
 .pz-list .lob-x { flex: 0 0 36px; height: 32px; }
 
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 6px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: rgba(18,10,58,.92); border: 2px solid var(--edge); border-radius: 6px; padding: 6px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.tab { appearance: none; cursor: pointer; border: 0; border-radius: 4px; background: transparent; color: var(--muted); padding: 10px 6px; min-width: 44px;
+  font: 400 1.05rem var(--display); letter-spacing: .04em; text-transform: uppercase; position: relative; }
+.tab:hover { color: var(--fg); }
+.tab:focus-visible { outline: 3px solid var(--rare); outline-offset: 1px; }
+.tab[aria-selected="true"] { color: var(--ink); background: linear-gradient(180deg, #fff27a, var(--legend)); }
+.tdot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 6px var(--bad); animation: blink 1.2s infinite; }
+.pane { display: flex; flex-direction: column; gap: 16px; }
+.rd-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rd-h { margin: 18px 0 0; font-family: var(--display); font-weight: 400; font-size: 1.1rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+.th-note { display: none; }
+#thBox { padding: 12px 14px; }
+#thBox .seg { margin-top: 8px; }
+#thBox .seg-b { padding: 8px 4px; }
+@media (max-width: 400px) { .tab { font-size: .95rem; padding: 9px 2px; } }
+
 /* Bildschirm-Blitz bei jedem Zählen: hell genug, um ihn aus dem Augenwinkel zu sehen */
 .flash { position: fixed; inset: 0; pointer-events: none; z-index: 25; opacity: 0;
   --fc: rgba(255, 20, 50, 1); background: rgba(255, 25, 55, .5);
@@ -397,51 +414,19 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
       <button class="btn small ghost" id="plus10" type="button" disabled><span>+10</span></button>
     </div>
 
-    <section class="slab" id="roundBox">
-      <h2>Session</h2>
-      <div class="rd-live" id="rdIdle">
-        <p class="rd-sub" style="margin:0">Starte eine Session, wenn ihr loslegt. Am Ende gibt's eine Auswertung: wer wie viele Kisten hatte, Spielzeit ohne Pausen und Kisten pro Stunde. Unten seht ihr, wie viel ihr an welchem Tag gespielt habt.</p>
-        <button class="btn" id="rdStart" type="button" disabled><span>Session starten</span></button>
-        <details class="rd-more">
-          <summary>Schon früher angefangen?</summary>
-          <div class="rd-form">
-            <label class="lbl" for="rdStartAt">Startzeit</label>
-            <input type="time" id="rdStartAt">
-            <button class="btn small blue" id="rdStartPast" type="button" disabled><span>Mit dieser Startzeit starten</span></button>
-          </div>
-        </details>
-      </div>
-      <div class="rd-live" id="rdActive" hidden>
-        <div class="rd-run"><span class="rd-dot"></span><strong id="rdSince">Session läuft</strong></div>
-        <div><span class="rd-big" id="rdCount">0</span> <span class="rd-sub">Kisten in dieser Session</span></div>
-        <div class="rd-sub" id="rdInfo"></div>
-        <div id="rdLive"></div>
-        <div class="rd-pausebar">
-          <button class="btn small ghost" id="rdPause" type="button" disabled><span>Kreativ-Pause starten</span></button>
-        </div>
-        <div id="rdActivePauses"></div>
-        <details class="rd-more">
-          <summary>Startzeit ändern</summary>
-          <div class="rd-form">
-            <label class="lbl" for="rdEditStart">Neue Startzeit</label>
-            <input type="time" id="rdEditStart">
-            <button class="btn small blue" id="rdEditStartBtn" type="button"><span>Startzeit speichern</span></button>
-          </div>
-        </details>
-        <button class="btn danger" id="rdEnd" type="button" disabled><span>Session beenden</span></button>
-      </div>
-      <div class="confirm" id="rdConfirm" hidden>
-        <strong>Session für alle beenden und auswerten?</strong>
-        <div class="row">
-          <button class="btn small ghost" id="rdNo" type="button"><span>Weiterspielen</span></button>
-          <button class="btn small danger" id="rdYes" type="button"><span>Ja, beenden</span></button>
-        </div>
-      </div>
-      <ul class="rd-list" id="rdList"></ul>
-      <div id="dayBox" hidden>
-        <h2 style="margin-top:18px">Tage</h2>
-        <ul class="rd-list" id="dayList"></ul>
-      </div>
+
+    <nav class="tabs" role="tablist" aria-label="Bereiche">
+      <button class="tab" type="button" role="tab" data-tab="team" aria-selected="true">Team</button>
+      <button class="tab" type="button" role="tab" data-tab="session" aria-selected="false">Session<i class="tdot" id="dot-session" hidden></i></button>
+      <button class="tab" type="button" role="tab" data-tab="runde" aria-selected="false">Runden<i class="tdot" id="dot-runde" hidden></i></button>
+      <button class="tab" type="button" role="tab" data-tab="tage" aria-selected="false">Tage</button>
+      <button class="tab" type="button" role="tab" data-tab="einst" aria-selected="false" aria-label="Einstellungen">⚙︎</button>
+    </nav>
+
+    <div class="pane stack" data-pane="team">
+    <section class="slab">
+      <h2>Wer hat wie viele?</h2>
+      <ul class="players" id="players"><li class="empty">Noch niemand hat getippt.</li></ul>
     </section>
 
     <section class="slab">
@@ -463,12 +448,26 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
         <div class="marks"><span>50 % ab <b id="p50"></b></span><span>90 % ab <b id="p90"></b></span><span>99 % ab <b id="p99"></b></span></div>
       </div>
     </section>
+    </div>
 
-    <section class="slab">
-      <h2>Wer hat wie viele?</h2>
-      <ul class="players" id="players"><li class="empty">Noch niemand hat getippt.</li></ul>
-    </section>
+    <div class="pane" data-pane="session" hidden>
+      <section class="slab" id="panel-session"></section>
+    </div>
 
+    <div class="pane" data-pane="runde" hidden>
+      <section class="slab" id="panel-runde"></section>
+    </div>
+
+    <div class="pane" data-pane="tage" hidden>
+      <section class="slab">
+        <h2>Tage</h2>
+        <p class="rd-sub" style="margin:0 0 4px">Wie lange ihr an welchem Tag gespielt habt (ohne Kreativ-Pausen) und wer wie viele Kisten hatte.</p>
+        <ul class="rd-list" id="dayList"></ul>
+        <p class="empty" id="dayEmpty">Noch keine Sessions. Startet im Reiter „Session“ eine, dann erscheint hier der Tag.</p>
+      </section>
+    </div>
+
+    <div class="pane" data-pane="einst" hidden>
     <section class="slab stack" id="settings">
       <h2>Lobby-Einstellungen</h2>
       <label class="lbl" for="renameIn">Dein Name</label>
@@ -490,6 +489,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
         </div>
       </div>
     </section>
+    </div>
   </section>
 
   <p class="foot">Der Stand wird online gespeichert. Mit demselben Code geht's am nächsten Tag einfach weiter.<br>Inoffizielles Fan-Tool, nicht von Epic Games.</p>
@@ -691,7 +691,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
 
   /* ---------- Lobby ---------- */
   function setStatus(kind, txt) { $("dot").className = "dot" + (kind ? " " + kind : ""); $("statusTxt").textContent = txt; }
-  function enable(on) { ["tap", "vault", "minus", "plus10", "rdStart", "rdStartPast", "rdPause", "rdEnd", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
+  function enable(on) { ["tap", "vault", "minus", "plus10", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
 
   function stopListening() {
     if (S.chan) { try { sb.removeChannel(S.chan); } catch (e) {} S.chan = null; }
@@ -732,7 +732,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     var own = chk(await sb.from("players").select("count,count15,count2,epoch").eq("lobby", code).eq("device", devId));
 
     var gen = ++S.gen;
-    S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false; S.rounds = []; S.openRound = null; S.openDay = null;
+    S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false; S.rounds = []; S.open = { session: null, runde: null }; S.openDay = null;
     S.mine = zero(); S.written = own.length ? null : zero();
     if (own.length && epochOf(own[0]) === epoch) { S.mine = fromRow(own[0]); S.written = fromRow(own[0]); }
     S.tmode = MODES[lob[0].mode] ? lob[0].mode : "normal"; S.tmodeAt = lob[0].mode_at || null;
@@ -757,11 +757,16 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "rounds", filter: "lobby=eq." + code }, function (p) {
         if (gen !== S.gen) return;
-        var was = activeRound();
+        var was = { session: activeOf("session"), runde: activeOf("runde") };
         loadRounds(gen).then(function () {
-          var now = activeRound();
-          if (!was && now && now.started_by !== S.name) toast(now.started_by + " hat eine Session gestartet");
-          if (was && !now) { var r = (S.rounds || []).filter(function (x) { return x.id === was.id; })[0]; if (r && r.ended_by !== S.name) { S.openRound = r.id; renderRounds(); toast((r.ended_by || "Jemand") + " hat die Session beendet – Auswertung ist da"); } }
+          ["session", "runde"].forEach(function (k) {
+            var now = activeOf(k), K = KINDS[k];
+            if (!was[k] && now && now.started_by !== S.name) toast(now.started_by + " hat eine " + K.one + " gestartet");
+            if (was[k] && !now) {
+              var r = (S.rounds || []).filter(function (x) { return x.id === was[k].id; })[0];
+              if (r && r.ended_by !== S.name) { S.open[k] = r.id; renderRounds(); toast((r.ended_by || "Jemand") + " hat die " + K.one + " beendet – Auswertung ist da"); }
+            }
+          });
         }).catch(function () {});
       })
       .subscribe(function (status) {
@@ -779,9 +784,15 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     return null;
   }
 
-  /* ---------- Sessions ---------- */
-  // Eine Session merkt sich beim Start und beim Ende die Zählerstände jedes Geräts.
-  // Die Auswertung ist der Unterschied dazwischen. Kreativ-Pausen liegen als "_pauses" mit im Start-Stand.
+  /* ---------- Sessions und Runden ---------- */
+  // Beide funktionieren gleich: beim Start und Ende wird der Zählerstand jedes Geräts gemerkt,
+  // die Auswertung ist der Unterschied. Kreativ-Pausen liegen als "_pauses" mit im Start-Stand.
+  // Eine Session (lang, z. B. der ganze Abend) und eine Runde (kurz) können gleichzeitig laufen.
+  var KINDS = {
+    session: { one: "Session", many: "Sessions", intro: "Für den ganzen Spieleabend. Läuft, bis ihr sie beendet – auch über Stunden. Mit Kreativ-Pausen, Live-Auswertung und Tagesübersicht." },
+    runde:   { one: "Runde",   many: "Runden",   intro: "Für kurze Abschnitte, z. B. eine Schatzstunde oder ein Match. Läuft unabhängig von der Session." }
+  };
+  function kindOf(r) { return r && r.kind === "runde" ? "runde" : "session"; }
   function snapshot() {
     var snap = {};
     Object.keys(S.docs).forEach(function (id) {
@@ -829,14 +840,15 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     return h ? h + " Std " + (m % 60) + " Min" : m + " Min";
   }
   function perHour(n, ms) { return ms >= 60000 ? fmt.format(Math.round(n / (ms / 36e5))) : "–"; }
-  // "HH:MM" am Tag von base; nach vorn/hinten schieben, damit es zur Session passt
   function timeAt(base, hhmm) {
     var m = /^(\d{1,2}):(\d{2})/.exec(hhmm || ""); if (!m) return null;
     var d = new Date(base); d.setHours(+m[1], +m[2], 0, 0); return d;
   }
   function hhmmOf(t) { var d = new Date(t); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
-  function activeRound() { return (S.rounds || []).filter(function (r) { return !r.ended_at; })[0] || null; }
-  // Kürzere Sessions, die ganz in einer anderen liegen, zählen in der Tagesübersicht nicht doppelt
+  function ofKind(k) { return (S.rounds || []).filter(function (r) { return kindOf(r) === k; }); }
+  function activeOf(k) { return ofKind(k).filter(function (r) { return !r.ended_at; })[0] || null; }
+  function activeRound() { return activeOf("session"); }
+  // Für die Tagesübersicht: was ganz in einem anderen Eintrag liegt, zählt nicht doppelt
   function isNested(r) {
     var a = new Date(r.started_at).getTime(), b = endMs(r);
     return (S.rounds || []).some(function (o) {
@@ -847,7 +859,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
   }
 
   async function loadRounds(gen) {
-    var rows = chk(await sb.from("rounds").select("*").eq("lobby", S.code).order("started_at", { ascending: false }).limit(60));
+    var rows = chk(await sb.from("rounds").select("*").eq("lobby", S.code).order("started_at", { ascending: false }).limit(80));
     if (gen !== S.gen) return;
     S.rounds = rows; renderRounds();
   }
@@ -859,11 +871,24 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     list = list.slice().sort(function (a, b) { return new Date(a.from) - new Date(b.from); });
     await saveRound(r, { start_counts: Object.assign({}, r.start_counts, { _pauses: list }) });
   }
+  function clashAt(t, exceptId, k) {
+    return ofKind(k).filter(function (o) { return o.id !== exceptId && o.ended_at && new Date(o.started_at) < t && new Date(o.ended_at) > t; })[0] || null;
+  }
+  // Grundstand bei früherem Start: Stand am Ende des letzten Eintrags (gleiche Art) davor, sonst alles seit dem letzten Zurücksetzen
+  function baseBefore(t, exceptId, k) {
+    var prev = ofKind(k).filter(function (r) { return r.ended_at && r.id !== exceptId && new Date(r.ended_at) <= t && r.end_counts; })
+      .sort(function (a, b) { return new Date(b.ended_at) - new Date(a.ended_at); })[0];
+    var base = {};
+    if (prev) Object.keys(prev.end_counts).forEach(function (x) { if (x.charAt(0) !== "_") base[x] = prev.end_counts[x]; });
+    return base;
+  }
+
+  function mkBtn(cls, text) { var b = document.createElement("button"); b.type = "button"; b.className = cls; var sp = document.createElement("span"); sp.textContent = text; b.appendChild(sp); return b; }
 
   function pauseEditor(r) {
     var box = document.createElement("div"); box.className = "pz";
     var list = pausesOf(r);
-    var title = document.createElement("div"); title.className = "lbl"; title.textContent = "Kreativ-Pausen" + (list.length ? " · zusammen " + durTxt(pauseMs(r)) : "");
+    var title = document.createElement("div"); title.className = "lbl"; title.textContent = "Kreativ-Pausen" + (list.length ? " · zusammen " + durTxt(pauseMs(r)) : " · noch keine");
     box.appendChild(title);
     if (list.length) {
       var ul = document.createElement("ul"); ul.className = "pz-list";
@@ -887,127 +912,29 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     var idF = "pzF-" + r.id, idT = "pzT-" + r.id;
     form.innerHTML = '<label class="lbl" for="' + idF + '">von</label><label class="lbl" for="' + idT + '">bis</label>' +
       '<input type="time" id="' + idF + '"><input type="time" id="' + idT + '">';
-    var add = document.createElement("button"); add.type = "button"; add.className = "btn small blue";
-    var sp = document.createElement("span"); sp.textContent = "Pause eintragen"; add.appendChild(sp);
+    var add = mkBtn("btn small blue", "Pause eintragen");
     add.addEventListener("click", function () {
       var st = new Date(r.started_at), f = timeAt(st, document.getElementById(idF).value), t = timeAt(st, document.getElementById(idT).value);
       if (!f || !t) { toast("Bitte beide Uhrzeiten eintragen"); return; }
-      if (f < st - 6e4) f.setDate(f.getDate() + 1);           // nach Mitternacht
+      if (f < st - 6e4) f.setDate(f.getDate() + 1);
       while (t <= f) t.setDate(t.getDate() + 1);
-      var nl = list.concat([{ from: f.toISOString(), to: t.toISOString() }]);
-      setPauses(r, nl).then(function () { toast("Pause " + hm(f) + "–" + hm(t) + " eingetragen"); }, function () { toast("Hat nicht geklappt – bitte nochmal versuchen"); });
+      setPauses(r, list.concat([{ from: f.toISOString(), to: t.toISOString() }]))
+        .then(function () { toast("Pause " + hm(f) + "–" + hm(t) + " eingetragen"); }, function () { toast("Hat nicht geklappt – bitte nochmal versuchen"); });
     });
     form.appendChild(add); det.appendChild(form); box.appendChild(det);
     return box;
   }
 
-  function renderRounds() {
-    if (!S.ready) return;
-    var act = activeRound();
-    $("rdIdle").hidden = !!act; $("rdActive").hidden = !act;
-    if (!act) $("rdConfirm").hidden = true;
-    if (act) {
-      var res = resultOf(act), rp = runningPause(act);
-      $("rdSince").textContent = (rp ? "Kreativ-Pause seit " + hm(rp.from) + " Uhr" : "Session läuft seit " + hm(act.started_at) + " Uhr") + " · Spielzeit " + durTxt(playMs(act));
-      $("rdCount").textContent = fmt.format(res.total);
-      var me = res.people.filter(function (p) { return p.name.toLowerCase() === S.name.toLowerCase(); })[0];
-      $("rdInfo").textContent = "Gestartet von " + (act.started_by || "?") + " · du: " + fmt.format(me ? me.count : 0) + " Kisten · " + perHour(res.total, playMs(act)) + " Kisten pro Stunde";
-      $("rdPause").querySelector("span").textContent = rp ? "Pause beenden – weiter geht's" : "Kreativ-Pause starten";
-      $("rdPause").className = "btn small " + (rp ? "" : "ghost");
-      var ap = $("rdActivePauses");
-      if (!ap.contains(document.activeElement) && !ap.querySelector("details[open]")) { ap.textContent = ""; ap.appendChild(pauseEditor(act)); }
-      if (document.activeElement !== $("rdEditStart")) $("rdEditStart").value = hhmmOf(act.started_at);
-      var lv = $("rdLive"); lv.textContent = ""; lv.appendChild(reportEl(act, res, true));
-    }
-    // beendete Sessions
-    var done = (S.rounds || []).filter(function (r) { return r.ended_at; });
-    var ul = $("rdList");
-    if (!ul.contains(document.activeElement) && !ul.querySelector("details[open]")) {
-      ul.textContent = "";
-      done.forEach(function (r) {
-        var res = resultOf(r);
-        var li = document.createElement("li"); li.className = "rd-item";
-        var b = document.createElement("button"); b.type = "button";
-        b.setAttribute("aria-expanded", String(S.openRound === r.id));
-        var left = document.createElement("div");
-        var w = document.createElement("span"); w.className = "rd-when"; w.textContent = dayTxt(r.started_at) + " · " + hm(r.started_at) + "–" + hm(r.ended_at);
-        var m = document.createElement("span"); m.className = "rd-meta"; m.textContent = durTxt(playMs(r)) + " gespielt · " + res.people.length + " Spieler" + (S.openRound === r.id ? " · zuklappen" : " · Auswertung");
-        left.appendChild(w); left.appendChild(m);
-        var n = document.createElement("span"); n.className = "rd-n"; n.textContent = fmt.format(res.total);
-        var sm = document.createElement("small"); sm.textContent = "Kisten"; n.appendChild(sm);
-        b.appendChild(left); b.appendChild(n);
-        b.addEventListener("click", function () { S.openRound = S.openRound === r.id ? null : r.id; renderRounds(); });
-        li.appendChild(b);
-        if (S.openRound === r.id) li.appendChild(reportEl(r, res));
-        ul.appendChild(li);
-      });
-    }
-    renderDays();
-  }
-
-  function renderDays() {
-    var days = {}, order = [];
-    (S.rounds || []).forEach(function (r) {
-      if (isNested(r)) return;
-      var k = dayKey(r.started_at);
-      if (!days[k]) { days[k] = { t: r.started_at, ms: 0, n: 0, sessions: 0, people: {}, boost: 0 }; order.push(k); }
-      var d = days[k], res = resultOf(r);
-      d.ms += playMs(r); d.n += res.total; d.sessions++; d.boost += res.team.count15 + res.team.count2;
-      res.people.forEach(function (p) { var key = p.name.toLowerCase(); if (!d.people[key]) d.people[key] = { name: p.name, count: 0 }; d.people[key].count += p.count; });
-    });
-    $("dayBox").hidden = !order.length;
-    var ul = $("dayList"); ul.textContent = "";
-    order.forEach(function (k) {
-      var d = days[k];
-      var li = document.createElement("li"); li.className = "rd-item";
-      var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-expanded", String(S.openDay === k));
-      var left = document.createElement("div");
-      var w = document.createElement("span"); w.className = "rd-when"; w.textContent = new Date(d.t).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
-      var m = document.createElement("span"); m.className = "rd-meta"; m.textContent = durTxt(d.ms) + " gespielt · " + d.sessions + (d.sessions === 1 ? " Session" : " Sessions") + " · " + perHour(d.n, d.ms) + "/Std";
-      left.appendChild(w); left.appendChild(m);
-      var n = document.createElement("span"); n.className = "rd-n"; n.textContent = fmt.format(d.n);
-      var sm = document.createElement("small"); sm.textContent = "Kisten"; n.appendChild(sm);
-      b.appendChild(left); b.appendChild(n);
-      b.addEventListener("click", function () { S.openDay = S.openDay === k ? null : k; renderDays(); });
-      li.appendChild(b);
-      if (S.openDay === k) {
-        var box = document.createElement("div"); box.className = "report";
-        var ppl = Object.keys(d.people).map(function (x) { return d.people[x]; }).sort(function (a, c) { return c.count - a.count; });
-        if (ppl.length) {
-          var t = document.createElement("table"); t.className = "rtable";
-          var head = document.createElement("tr");
-          ["Spieler", "Kisten", "Anteil", "/Std"].forEach(function (h) { var th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
-          t.appendChild(head);
-          ppl.forEach(function (p) {
-            var tr = document.createElement("tr");
-            [p.name, fmt.format(p.count), Math.round(p.count / Math.max(1, d.n) * 100) + " %", perHour(p.count, d.ms)].forEach(function (v, i) {
-              var td = document.createElement("td"); td.textContent = v; if (i === 0) td.className = "nm"; tr.appendChild(td);
-            });
-            t.appendChild(tr);
-          });
-          var wrap = document.createElement("div"); wrap.className = "rwrap"; wrap.appendChild(t); box.appendChild(wrap);
-        }
-        var note = document.createElement("div"); note.className = "rd-sub";
-        note.textContent = "Spielzeit ohne Kreativ-Pausen. " + fmt.format(d.boost) + " Kisten in Schatzstunden." + (activeRound() && dayKey(activeRound().started_at) === k ? " Die laufende Session zählt schon mit." : "");
-        box.appendChild(note);
-        li.appendChild(box);
-      }
-      ul.appendChild(li);
-    });
-  }
-
   function reportEl(r, res, live) {
+    var K = KINDS[kindOf(r)];
     var box = document.createElement("div"); box.className = "report";
     var play = playMs(r), pz = pauseMs(r);
     var h3 = document.createElement("h3"); h3.textContent = live ? "Live-Auswertung" : "Auswertung " + dayTxt(r.started_at) + ", " + hm(r.started_at) + "–" + hm(r.ended_at) + " Uhr";
     box.appendChild(h3);
     var kpis = document.createElement("div"); kpis.className = "kpis";
-    [["Kisten gesamt", fmt.format(res.total)],
-     ["Spielzeit", durTxt(play)],
-     ["Pro Stunde", perHour(res.total, play)],
-     ["Spieler", String(res.people.length)],
-     ["Kreativ-Pausen", pz ? durTxt(pz) : "keine"],
-     ["Token-Chance", pct(-Math.expm1(logNone(res.team)))]].forEach(function (k) {
+    [["Kisten gesamt", fmt.format(res.total)], ["Spielzeit", durTxt(play)], ["Pro Stunde", perHour(res.total, play)],
+     ["Spieler", String(res.people.length)], ["Kreativ-Pausen", pz ? durTxt(pz) : "keine"], ["Token-Chance", pct(-Math.expm1(logNone(res.team)))]
+    ].forEach(function (k) {
       var d = document.createElement("div"); d.className = "kpi";
       var l = document.createElement("div"); l.className = "lbl"; l.textContent = k[0];
       var v = document.createElement("div"); v.className = "v"; v.textContent = k[1];
@@ -1029,117 +956,238 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
       });
       wrap.appendChild(t); box.appendChild(wrap);
     } else {
-      var e = document.createElement("div"); e.className = "empty"; e.textContent = live ? "Noch keine Kisten in dieser Session." : "In dieser Session wurden keine Kisten gezählt."; box.appendChild(e);
+      var e = document.createElement("div"); e.className = "empty"; e.textContent = live ? "Noch keine Kisten in dieser " + K.one + "." : "In dieser " + K.one + " wurden keine Kisten gezählt."; box.appendChild(e);
     }
-    if (live) {
-      var ln = document.createElement("div"); ln.className = "rd-sub";
-      ln.textContent = "Aktualisiert sich von selbst, solange die Session läuft. Spielzeit ohne Kreativ-Pausen.";
-      box.appendChild(ln);
-      return box;
-    }
+    if (live) return box;
     box.appendChild(pauseEditor(r));
     var note = document.createElement("div"); note.className = "rd-sub";
-    note.textContent = "Spielzeit = Dauer ohne Kreativ-Pausen. Token-Chance = so wahrscheinlich war mindestens ein Token bei den Kisten dieser Session. Gestartet von " + (r.started_by || "?") + ", beendet von " + (r.ended_by || "?") + ".";
+    note.textContent = "Spielzeit = Dauer ohne Kreativ-Pausen. Token-Chance = so wahrscheinlich war mindestens ein Token bei diesen Kisten. Gestartet von " + (r.started_by || "?") + ", beendet von " + (r.ended_by || "?") + ".";
     box.appendChild(note);
     var row = document.createElement("div"); row.className = "row";
-    var del = document.createElement("button"); del.type = "button"; del.className = "btn small ghost";
-    var sp = document.createElement("span"); sp.textContent = "Session aus der Liste löschen"; del.appendChild(sp);
+    var del = mkBtn("btn small ghost", K.one + " löschen");
     del.addEventListener("click", function () {
-      ask("Diese Session mit ihrer Auswertung für alle löschen? Die Kisten im Lobby-Zähler bleiben.", "Ja, Session löschen", async function () {
+      ask("Diese " + K.one + " mit Auswertung für alle löschen? Die Kisten im Lobby-Zähler bleiben.", "Ja, löschen", async function () {
         chk(await sb.from("rounds").delete().eq("id", r.id));
-        S.rounds = S.rounds.filter(function (x) { return x.id !== r.id; }); S.openRound = null; renderRounds();
-        toast("Session gelöscht");
+        S.rounds = S.rounds.filter(function (x) { return x.id !== r.id; }); S.open[kindOf(r)] = null; renderRounds();
+        toast(K.one + " gelöscht");
       });
-      $("settings").scrollIntoView({ behavior: "smooth", block: "end" });
+      showTab("einst");
     });
     row.appendChild(del); box.appendChild(row);
     return box;
   }
 
-  // Grundstand für eine Session, die schon früher begonnen hat: Stand am Ende der letzten Session davor, sonst alles seit dem letzten Zurücksetzen
-  function baseBefore(t, exceptId) {
-    var prev = (S.rounds || []).filter(function (r) { return r.ended_at && r.id !== exceptId && new Date(r.ended_at) <= t && r.end_counts; })
-      .sort(function (a, b) { return new Date(b.ended_at) - new Date(a.ended_at); })[0];
-    var base = {};
-    if (prev) Object.keys(prev.end_counts).forEach(function (k) { if (k.charAt(0) !== "_") base[k] = prev.end_counts[k]; });
-    return base;
+  // Panel für Session bzw. Runde einmal aufbauen
+  var PANELS = {};
+  function buildPanel(k) {
+    var K = KINDS[k], root = $("panel-" + k), q = {};
+    root.innerHTML =
+      '<h2>' + K.one + '</h2>' +
+      '<div class="rd-live" data-r="idle"><p class="rd-sub" style="margin:0">' + K.intro + '</p></div>' +
+      '<div class="rd-live" data-r="active" hidden>' +
+        '<div class="rd-run"><span class="rd-dot"></span><strong data-r="since"></strong></div>' +
+        '<div><span class="rd-big" data-r="count">0</span> <span class="rd-sub">Kisten in dieser ' + K.one + '</span></div>' +
+        '<div class="rd-sub" data-r="info"></div>' +
+        '<div class="rd-actions" data-r="acts"></div>' +
+        '<div data-r="live"></div>' +
+        '<div data-r="pauses"></div>' +
+      '</div>' +
+      '<div class="confirm" data-r="confirm" hidden><strong>' + K.one + ' für alle beenden und auswerten?</strong><div class="row" data-r="crow"></div></div>' +
+      '<h3 class="rd-h" data-r="listh" hidden>Beendete ' + K.many + '</h3><ul class="rd-list" data-r="list"></ul>';
+    root.querySelectorAll("[data-r]").forEach(function (n) { q[n.dataset.r] = n; });
+
+    // Start
+    q.start = mkBtn("btn", K.one + " starten"); q.idle.appendChild(q.start);
+    var det = document.createElement("details"); det.className = "rd-more";
+    det.innerHTML = '<summary>Schon früher angefangen?</summary><div class="rd-form"><label class="lbl" for="' + k + '-startAt">Startzeit</label><input type="time" id="' + k + '-startAt"></div>';
+    q.startPast = mkBtn("btn small blue", "Mit dieser Startzeit starten"); det.querySelector(".rd-form").appendChild(q.startPast);
+    q.idle.appendChild(det);
+    // Laufend: Pause, Ende, Startzeit
+    q.pause = mkBtn("btn small ghost", "Kreativ-Pause starten");
+    q.end = mkBtn("btn small danger", K.one + " beenden");
+    q.acts.appendChild(q.pause); q.acts.appendChild(q.end);
+    var det2 = document.createElement("details"); det2.className = "rd-more";
+    det2.innerHTML = '<summary>Startzeit ändern</summary><div class="rd-form"><label class="lbl" for="' + k + '-edit">Neue Startzeit</label><input type="time" id="' + k + '-edit"></div>';
+    q.editBtn = mkBtn("btn small blue", "Startzeit speichern"); det2.querySelector(".rd-form").appendChild(q.editBtn);
+    q.active.appendChild(det2);
+    q.no = mkBtn("btn small ghost", "Weiterspielen"); q.yes = mkBtn("btn small danger", "Ja, beenden");
+    q.crow.appendChild(q.no); q.crow.appendChild(q.yes);
+
+    async function start(at) {
+      if (!S.ready || activeOf(k)) return;
+      var gen = S.gen;
+      clearTimeout(S.timer); await flush(); await loadPlayers(gen);
+      var row = { lobby: S.code, kind: k, started_by: S.name, start_counts: at ? baseBefore(at, null, k) : snapshot() };
+      if (at) row.started_at = at.toISOString();
+      var r = await sb.from("rounds").insert(row).select();
+      if (r.error && r.error.code !== "23505") throw r.error;
+      await loadRounds(gen);
+      toast(r.error ? "Es läuft schon eine " + K.one : at ? K.one + " ab " + hm(at) + " Uhr gestartet" : K.one + " gestartet – viel Glück!");
+    }
+    q.start.addEventListener("click", async function () {
+      q.start.disabled = true;
+      try { await start(null); } catch (e) { console.error(e); toast(K.one + " konnte nicht starten – bitte nochmal versuchen"); }
+      finally { q.start.disabled = false; }
+    });
+    q.startPast.addEventListener("click", async function () {
+      var at = timeAt(new Date(), $(k + "-startAt").value);
+      if (!at) { toast("Bitte eine Startzeit eintragen"); return; }
+      if (at > new Date()) at.setDate(at.getDate() - 1);
+      var c = clashAt(at, null, k);
+      if (c) { toast("Um " + hm(at) + " lief schon die " + K.one + " " + hm(c.started_at) + "–" + hm(c.ended_at) + " Uhr"); return; }
+      q.startPast.disabled = true;
+      try { await start(at); } catch (e) { console.error(e); toast(K.one + " konnte nicht starten – bitte nochmal versuchen"); }
+      finally { q.startPast.disabled = false; }
+    });
+    q.editBtn.addEventListener("click", async function () {
+      var act = activeOf(k); if (!act) return;
+      var at = timeAt(new Date(), $(k + "-edit").value);
+      if (!at) { toast("Bitte eine Startzeit eintragen"); return; }
+      if (at > new Date()) at.setDate(at.getDate() - 1);
+      var c = clashAt(at, act.id, k);
+      if (c) { toast("Um " + hm(at) + " lief schon die " + K.one + " " + hm(c.started_at) + "–" + hm(c.ended_at) + " Uhr"); return; }
+      var patch = { started_at: at.toISOString() };
+      if (at < new Date(act.started_at)) patch.start_counts = Object.assign(baseBefore(at, act.id, k), { _pauses: pausesOf(act) });
+      try { await saveRound(act, patch); $(k + "-edit").blur(); toast("Startzeit auf " + hm(at) + " Uhr gesetzt"); }
+      catch (e) { console.error(e); toast("Hat nicht geklappt – bitte nochmal versuchen"); }
+    });
+    q.pause.addEventListener("click", async function () {
+      var act = activeOf(k); if (!act) return;
+      var list = pausesOf(act).map(function (p) { return Object.assign({}, p); }), rp = list.filter(function (p) { return !p.to; })[0];
+      if (rp) { rp.to = new Date().toISOString(); if (new Date(rp.to) - new Date(rp.from) < 60000) list = list.filter(function (p) { return p !== rp; }); }
+      else list.push({ from: new Date().toISOString(), to: null });
+      try { await setPauses(act, list); toast(rp ? "Pause beendet – weiter geht's" : "Kreativ-Pause läuft"); }
+      catch (e) { console.error(e); toast("Hat nicht geklappt – bitte nochmal versuchen"); }
+    });
+    q.end.addEventListener("click", function () { q.confirm.hidden = false; q.no.focus(); });
+    q.no.addEventListener("click", function () { q.confirm.hidden = true; });
+    q.yes.addEventListener("click", async function () {
+      var act = activeOf(k); if (!act) { q.confirm.hidden = true; return; }
+      var gen = S.gen; q.yes.disabled = true;
+      try {
+        clearTimeout(S.timer); await flush(); await loadPlayers(gen);
+        var now = new Date().toISOString();
+        var patch = { ended_at: now, ended_by: S.name, end_counts: snapshot() };
+        if (runningPause(act)) patch.start_counts = Object.assign({}, act.start_counts, { _pauses: pausesOf(act).map(function (p) { return p.to ? p : { from: p.from, to: now }; }) });
+        chk(await sb.from("rounds").update(patch).eq("id", act.id).is("ended_at", null));
+        S.open[k] = act.id;
+        await loadRounds(gen);
+        q.confirm.hidden = true;
+        toast(K.one + " beendet – hier ist eure Auswertung");
+      } catch (e) { console.error(e); toast(K.one + " konnte nicht beendet werden – bitte nochmal versuchen"); }
+      finally { q.yes.disabled = false; }
+    });
+    PANELS[k] = q;
   }
 
-  // Liegt der Zeitpunkt mitten in einer anderen, schon beendeten Session?
-  function clashAt(t, exceptId) {
-    return (S.rounds || []).filter(function (o) { return o.id !== exceptId && o.ended_at && new Date(o.started_at) < t && new Date(o.ended_at) > t; })[0] || null;
-  }
-  async function startSession(at) {
-    if (!S.ready || activeRound()) return;
-    var gen = S.gen;
-    clearTimeout(S.timer); await flush();
-    await loadPlayers(gen);
-    var row = { lobby: S.code, started_by: S.name, start_counts: at ? baseBefore(at, null) : snapshot() };
-    if (at) row.started_at = at.toISOString();
-    var r = await sb.from("rounds").insert(row).select();
-    if (r.error && r.error.code !== "23505") throw r.error;
-    await loadRounds(gen);
-    toast(r.error ? "Es läuft schon eine Session" : at ? "Session ab " + hm(at) + " Uhr gestartet" : "Session gestartet – viel Glück!");
-  }
-  $("rdStart").addEventListener("click", async function () {
-    var btn = this; btn.disabled = true;
-    try { await startSession(null); } catch (e) { console.error(e); toast("Session konnte nicht starten – bitte nochmal versuchen"); }
-    finally { btn.disabled = false; }
-  });
-  $("rdStartPast").addEventListener("click", async function () {
-    var at = timeAt(new Date(), $("rdStartAt").value);
-    if (!at) { toast("Bitte eine Startzeit eintragen"); return; }
-    if (at > new Date()) at.setDate(at.getDate() - 1);
-    var c1 = clashAt(at, null);
-    if (c1) { toast("Um " + hm(at) + " lief schon die Session " + hm(c1.started_at) + "–" + hm(c1.ended_at) + " Uhr"); return; }
-    var btn = this; btn.disabled = true;
-    try { await startSession(at); } catch (e) { console.error(e); toast("Session konnte nicht starten – bitte nochmal versuchen"); }
-    finally { btn.disabled = false; }
-  });
-  $("rdEditStartBtn").addEventListener("click", async function () {
-    var act = activeRound(); if (!act) return;
-    var at = timeAt(new Date(), $("rdEditStart").value);
-    if (!at) { toast("Bitte eine Startzeit eintragen"); return; }
-    if (at > new Date()) at.setDate(at.getDate() - 1);
-    var c2 = clashAt(at, act.id);
-    if (c2) { toast("Um " + hm(at) + " lief schon die Session " + hm(c2.started_at) + "–" + hm(c2.ended_at) + " Uhr"); return; }
-    var patch = { started_at: at.toISOString() };
-    if (at < new Date(act.started_at)) {
-      // früherer Start: Kisten ab dann mitzählen, Pausen behalten
-      patch.start_counts = Object.assign(baseBefore(at, act.id), { _pauses: pausesOf(act) });
+  function renderPanel(k) {
+    var q = PANELS[k], K = KINDS[k], act = activeOf(k);
+    q.idle.hidden = !!act; q.active.hidden = !act;
+    q.start.disabled = q.startPast.disabled = !S.ready;
+    $("dot-" + k).hidden = !act;
+    if (!act) q.confirm.hidden = true;
+    if (act) {
+      var res = resultOf(act), rp = runningPause(act);
+      q.since.textContent = (rp ? "Kreativ-Pause seit " + hm(rp.from) + " Uhr" : K.one + " läuft seit " + hm(act.started_at) + " Uhr") + " · Spielzeit " + durTxt(playMs(act));
+      q.count.textContent = fmt.format(res.total);
+      var me = res.people.filter(function (p) { return p.name.toLowerCase() === S.name.toLowerCase(); })[0];
+      q.info.textContent = "Gestartet von " + (act.started_by || "?") + " · du: " + fmt.format(me ? me.count : 0) + " Kisten";
+      q.pause.querySelector("span").textContent = rp ? "Pause beenden" : "Kreativ-Pause starten";
+      q.pause.className = "btn small " + (rp ? "" : "ghost");
+      q.live.textContent = ""; q.live.appendChild(reportEl(act, res, true));
+      if (!q.pauses.contains(document.activeElement) && !q.pauses.querySelector("details[open]")) { q.pauses.textContent = ""; q.pauses.appendChild(pauseEditor(act)); }
+      var ed = $(k + "-edit"); if (document.activeElement !== ed) ed.value = hhmmOf(act.started_at);
     }
-    try { await saveRound(act, patch); $("rdEditStart").blur(); toast("Startzeit auf " + hm(at) + " Uhr gesetzt"); }
-    catch (e) { console.error(e); toast("Hat nicht geklappt – bitte nochmal versuchen"); }
-  });
-  $("rdPause").addEventListener("click", async function () {
-    var act = activeRound(); if (!act) return;
-    var list = pausesOf(act).map(function (p) { return Object.assign({}, p); }), rp = list.filter(function (p) { return !p.to; })[0];
-    if (rp) { rp.to = new Date().toISOString(); if (new Date(rp.to) - new Date(rp.from) < 60000) list = list.filter(function (p) { return p !== rp; }); }
-    else list.push({ from: new Date().toISOString(), to: null });
-    try { await setPauses(act, list); toast(rp ? "Pause beendet – weiter geht's" : "Kreativ-Pause läuft"); }
-    catch (e) { console.error(e); toast("Hat nicht geklappt – bitte nochmal versuchen"); }
-  });
-  $("rdEnd").addEventListener("click", function () { $("rdConfirm").hidden = false; $("rdNo").focus(); });
-  $("rdNo").addEventListener("click", function () { $("rdConfirm").hidden = true; });
-  $("rdYes").addEventListener("click", async function () {
-    var act = activeRound(); if (!act) { $("rdConfirm").hidden = true; return; }
-    var gen = S.gen, btn = $("rdYes"); btn.disabled = true;
-    try {
-      clearTimeout(S.timer); await flush();
-      await loadPlayers(gen);
-      var now = new Date().toISOString();
-      var patch = { ended_at: now, ended_by: S.name, end_counts: snapshot() };
-      if (runningPause(act)) patch.start_counts = Object.assign({}, act.start_counts, { _pauses: pausesOf(act).map(function (p) { return p.to ? p : { from: p.from, to: now }; }) });
-      chk(await sb.from("rounds").update(patch).eq("id", act.id).is("ended_at", null));
-      S.openRound = act.id;
-      await loadRounds(gen);
-      $("rdConfirm").hidden = true;
-      toast("Session beendet – hier ist eure Auswertung");
-      var li = $("rdList").firstChild; if (li) li.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (e) { console.error(e); toast("Session konnte nicht beendet werden – bitte nochmal versuchen"); }
-    finally { btn.disabled = false; }
-  });
-  setInterval(function () { if (S.ready && !document.hidden && activeRound()) renderRounds(); }, 30000);
+    var done = ofKind(k).filter(function (r) { return r.ended_at; });
+    q.listh.hidden = !done.length;
+    if (q.list.contains(document.activeElement) || q.list.querySelector("details[open]")) return;
+    q.list.textContent = "";
+    done.forEach(function (r) {
+      var res = resultOf(r), open = S.open[k] === r.id;
+      var li = document.createElement("li"); li.className = "rd-item";
+      var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-expanded", String(open));
+      var left = document.createElement("div");
+      var w = document.createElement("span"); w.className = "rd-when"; w.textContent = dayTxt(r.started_at) + " · " + hm(r.started_at) + "–" + hm(r.ended_at);
+      var m = document.createElement("span"); m.className = "rd-meta"; m.textContent = durTxt(playMs(r)) + " gespielt · " + res.people.length + " Spieler" + (open ? " · zuklappen" : " · Auswertung");
+      left.appendChild(w); left.appendChild(m);
+      var n = document.createElement("span"); n.className = "rd-n"; n.textContent = fmt.format(res.total);
+      var sm = document.createElement("small"); sm.textContent = "Kisten"; n.appendChild(sm);
+      b.appendChild(left); b.appendChild(n);
+      b.addEventListener("click", function () { S.open[k] = open ? null : r.id; renderPanel(k); });
+      li.appendChild(b);
+      if (open) li.appendChild(reportEl(r, res, false));
+      q.list.appendChild(li);
+    });
+  }
+
+  function renderRounds() {
+    if (!S.ready) return;
+    renderPanel("session"); renderPanel("runde"); renderDays();
+  }
+
+  function renderDays() {
+    var days = {}, order = [];
+    (S.rounds || []).forEach(function (r) {
+      if (isNested(r)) return;
+      var k = dayKey(r.started_at);
+      if (!days[k]) { days[k] = { t: r.started_at, ms: 0, n: 0, sessions: 0, people: {}, boost: 0 }; order.push(k); }
+      var d = days[k], res = resultOf(r);
+      d.ms += playMs(r); d.n += res.total; d.sessions++; d.boost += res.team.count15 + res.team.count2;
+      res.people.forEach(function (p) { var key = p.name.toLowerCase(); if (!d.people[key]) d.people[key] = { name: p.name, count: 0 }; d.people[key].count += p.count; });
+    });
+    $("dayEmpty").hidden = !!order.length;
+    var ul = $("dayList"); ul.textContent = "";
+    order.forEach(function (k) {
+      var d = days[k], open = S.openDay === k;
+      var li = document.createElement("li"); li.className = "rd-item";
+      var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-expanded", String(open));
+      var left = document.createElement("div");
+      var w = document.createElement("span"); w.className = "rd-when"; w.textContent = new Date(d.t).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+      var m = document.createElement("span"); m.className = "rd-meta"; m.textContent = durTxt(d.ms) + " gespielt · " + perHour(d.n, d.ms) + " Kisten/Std";
+      left.appendChild(w); left.appendChild(m);
+      var n = document.createElement("span"); n.className = "rd-n"; n.textContent = fmt.format(d.n);
+      var sm = document.createElement("small"); sm.textContent = "Kisten"; n.appendChild(sm);
+      b.appendChild(left); b.appendChild(n);
+      b.addEventListener("click", function () { S.openDay = open ? null : k; renderDays(); });
+      li.appendChild(b);
+      if (open) {
+        var box = document.createElement("div"); box.className = "report";
+        var ppl = Object.keys(d.people).map(function (x) { return d.people[x]; }).sort(function (a, c) { return c.count - a.count; });
+        if (ppl.length) {
+          var t = document.createElement("table"); t.className = "rtable";
+          var head = document.createElement("tr");
+          ["Spieler", "Kisten", "Anteil", "/Std"].forEach(function (h) { var th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
+          t.appendChild(head);
+          ppl.forEach(function (p) {
+            var tr = document.createElement("tr");
+            [p.name, fmt.format(p.count), Math.round(p.count / Math.max(1, d.n) * 100) + " %", perHour(p.count, d.ms)].forEach(function (v, i) {
+              var td = document.createElement("td"); td.textContent = v; if (i === 0) td.className = "nm"; tr.appendChild(td);
+            });
+            t.appendChild(tr);
+          });
+          var wrap = document.createElement("div"); wrap.className = "rwrap"; wrap.appendChild(t); box.appendChild(wrap);
+        }
+        var note = document.createElement("div"); note.className = "rd-sub";
+        note.textContent = "Spielzeit ohne Kreativ-Pausen. " + fmt.format(d.boost) + " Kisten in Schatzstunden. Runden innerhalb einer Session zählen nicht doppelt.";
+        box.appendChild(note);
+        li.appendChild(box);
+      }
+      ul.appendChild(li);
+    });
+  }
+
+  /* ---------- Reiter ---------- */
+  function showTab(t) {
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) { b.setAttribute("aria-selected", String(b.dataset.tab === t)); });
+    Array.prototype.forEach.call(document.querySelectorAll(".pane"), function (p) { p.hidden = p.dataset.pane !== t; });
+    lsSet("tkz-tab", t);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) { b.addEventListener("click", function () { showTab(b.dataset.tab); }); });
+  showTab(lsGet("tkz-tab") || "team");
+
+  S.open = { session: null, runde: null };
+  buildPanel("session"); buildPanel("runde");
+  setInterval(function () { if (S.ready && !document.hidden && (activeOf("session") || activeOf("runde"))) renderRounds(); }, 30000);
 
 
   /* ---------- Bildschirm anlassen ---------- */
@@ -1365,7 +1413,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121222725", newV = null;
+  var VERSION = "20261121223245", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
