@@ -116,6 +116,23 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 .pop { position: absolute; pointer-events: none; font-family: var(--display); font-size: 2rem; color: var(--legend); text-shadow: 0 3px 0 rgba(0,0,0,.45); animation: rise .7s ease-out forwards; }
 @keyframes rise { from { opacity: 1; transform: translate(-50%, -50%) scale(.8) } to { opacity: 0; transform: translate(-50%, -150%) scale(1.25) } }
 
+.vault {
+  appearance: none; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 14px;
+  border: 3px solid #e9eef7; border-radius: 8px; padding: 12px 16px; color: #fff;
+  background: linear-gradient(180deg, #a9b6cc 0%, #5d6b86 55%, #3b4660 100%);
+  box-shadow: 0 6px 0 #1e2538, inset 0 2px 0 rgba(255,255,255,.35); transition: transform .06s, box-shadow .06s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+}
+.vault:active { transform: translateY(5px); box-shadow: 0 1px 0 #1e2538, inset 0 2px 0 rgba(255,255,255,.35); }
+.vault:focus-visible { outline: 3px solid var(--rare); outline-offset: 3px; }
+.vault[disabled] { opacity: .5; cursor: not-allowed; }
+.vault svg { width: 52px; height: 52px; flex: 0 0 auto; filter: drop-shadow(0 3px 0 rgba(0,0,0,.35)); }
+.vault .vt { font: 400 1.6rem var(--display); text-transform: uppercase; letter-spacing: .04em; transform: skewX(-6deg); text-shadow: 0 3px 0 rgba(0,0,0,.35); line-height: 1; }
+.vault .vt b { color: var(--legend); font-weight: 400; }
+.vault .vs { display: block; font: 700 .78rem var(--body); letter-spacing: .02em; text-transform: none; transform: none; text-shadow: none; opacity: .85; margin-top: 4px; }
+.vault.hit svg { animation: spin .35s ease-out; }
+@keyframes spin { 0% { transform: rotate(0) } 60% { transform: rotate(-25deg) scale(1.08) } 100% { transform: rotate(0) } }
+@media (prefers-reduced-motion: reduce) { .vault.hit svg { animation: none; } }
 .fix { display: flex; gap: 10px; }
 .fix .btn { flex: 1 1 0; }
 
@@ -304,6 +321,18 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       <span class="total" id="total">0</span>
       <span class="cap">Kisten im Team</span>
       <span class="mine" id="mine">Tippen oder Leertaste = +1 Kiste</span>
+    </button>
+
+    <button class="vault" id="vault" type="button" disabled aria-label="Tresor geöffnet, plus fünf Kisten">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="4" y="6" width="56" height="50" rx="6" fill="#2b3348" stroke="#11151f" stroke-width="3"/>
+        <rect x="9" y="11" width="46" height="40" rx="4" fill="#7c8aa6" stroke="#11151f" stroke-width="2.5"/>
+        <circle cx="32" cy="31" r="13" fill="#c9d3e3" stroke="#11151f" stroke-width="2.5"/>
+        <circle cx="32" cy="31" r="4" fill="#ffb11a" stroke="#11151f" stroke-width="2"/>
+        <path d="M32 18v6M32 38v6M19 31h6M39 31h6M22.8 21.8l4.2 4.2M37 36l4.2 4.2M22.8 40.2 27 36M37 26l4.2-4.2" stroke="#11151f" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="12" y="56" width="10" height="5" rx="1.5" fill="#11151f"/><rect x="42" y="56" width="10" height="5" rx="1.5" fill="#11151f"/>
+      </svg>
+      <span class="vt">Tresor <b>+5</b><span class="vs">Ein Tresor zählt als 5 Kisten</span></span>
     </button>
 
     <div class="fix">
@@ -556,7 +585,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 
   /* ---------- Lobby ---------- */
   function setStatus(kind, txt) { $("dot").className = "dot" + (kind ? " " + kind : ""); $("statusTxt").textContent = txt; }
-  function enable(on) { ["tap", "minus", "plus10", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
+  function enable(on) { ["tap", "vault", "minus", "plus10", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
 
   function stopListening() {
     if (S.chan) { try { sb.removeChannel(S.chan); } catch (e) {} S.chan = null; }
@@ -787,6 +816,10 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   });
   document.addEventListener("keyup", function (e) { if (spaceCounts(e)) e.preventDefault(); });
   $("plus10").addEventListener("click", function () { add(10); });
+  $("vault").addEventListener("click", function () {
+    add(5); keepAwake();
+    var v = $("vault"); v.classList.remove("hit"); void v.offsetWidth; v.classList.add("hit");
+  });
   $("minus").addEventListener("click", function () { add(-1); });
 
   $("copyBtn").addEventListener("click", function () {
