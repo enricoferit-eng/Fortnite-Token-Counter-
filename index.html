@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a6cf0">
+<title>Token-Kistenzähler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Rubik:wght@500;700;900&display=swap">
+<style>
+/* Layout: Lobby-Leiste oben, darunter eine riesige Tipp-Fläche mit Kiste, dann Chancen-Tafel und Rangliste. Schräge Panels in Seltenheitsfarben. */
+:root {
+  --sky1: #1a6cf0;
+  --sky2: #3b1d8f;
+  --night: #120a3a;
+  --panel: #1d1458;
+  --panel2: #281c74;
+  --edge: #5a49d6;
+  --fg: #ffffff;
+  --muted: #b9b2ff;
+  --legend: #ffb11a;
+  --legend2: #ff6a00;
+  --epic: #c64bff;
+  --rare: #2fc1ff;
+  --uncommon: #5be05b;
+  --bad: #ff5470;
+  --ink: #1b0f00;
+  --display: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --body: "Rubik", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--night); }
+body {
+  margin: 0; min-height: 100vh; color: var(--fg); font-family: var(--body); font-weight: 500;
+  background:
+    radial-gradient(90% 55% at 50% -5%, rgba(47,193,255,.55) 0%, transparent 60%),
+    linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 42%, var(--night) 100%) var(--night);
+  background-attachment: fixed;
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 40px;
+}
+@media (min-width: 0px) { body { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); } }
+main { max-width: 620px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo svg { width: 52px; height: 52px; flex: 0 0 auto; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
+h1 { font-family: var(--display); font-weight: 400; text-transform: uppercase; margin: 0; line-height: .95; font-size: clamp(1.9rem, 8vw, 2.8rem); letter-spacing: .01em; transform: skewX(-6deg); text-shadow: 0 3px 0 rgba(0,0,0,.35); }
+h1 em { font-style: normal; color: var(--legend); }
+.tag { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+
+/* Schräge Panels */
+.slab { position: relative; background: var(--panel); border: 3px solid var(--edge); border-radius: 6px; padding: 16px; box-shadow: 0 6px 0 rgba(0,0,0,.35); }
+.slab h2 { font-family: var(--display); font-weight: 400; text-transform: uppercase; letter-spacing: .03em; font-size: 1.35rem; margin: 0 0 12px; transform: skewX(-6deg); }
+.lbl { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+
+input[type=text] {
+  width: 100%; min-width: 0; font: 700 1.1rem var(--body); color: var(--fg);
+  background: var(--night); border: 3px solid var(--edge); border-radius: 4px; padding: 12px 14px;
+}
+input[type=text]:focus-visible { outline: none; border-color: var(--rare); box-shadow: 0 0 0 3px rgba(47,193,255,.35); }
+input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(--display); font-weight: 400; font-size: 1.5rem; }
+
+.btn {
+  appearance: none; cursor: pointer; border: 0; border-radius: 4px; padding: 13px 18px;
+  font: 400 1.15rem var(--display); text-transform: uppercase; letter-spacing: .04em; color: var(--ink);
+  background: linear-gradient(180deg, #fff27a 0%, var(--legend) 100%);
+  box-shadow: 0 5px 0 #a35a00; transform: skewX(-6deg); transition: transform .06s, box-shadow .06s;
+}
+.btn > span { display: inline-block; transform: skewX(6deg); }
+.btn:active { transform: skewX(-6deg) translateY(4px); box-shadow: 0 1px 0 #a35a00; }
+.btn:focus-visible { outline: 3px solid var(--rare); outline-offset: 3px; }
+.btn.blue { color: #fff; background: linear-gradient(180deg, #6fd8ff 0%, #1c8ee8 100%); box-shadow: 0 5px 0 #0b4f93; }
+.btn.blue:active { box-shadow: 0 1px 0 #0b4f93; }
+.btn.ghost { color: var(--fg); background: var(--panel2); box-shadow: 0 5px 0 rgba(0,0,0,.4); border: 2px solid var(--edge); }
+.btn.small { padding: 9px 14px; font-size: 1rem; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.row > * { flex: 1 1 auto; }
+.or { text-align: center; font-family: var(--display); color: var(--muted); letter-spacing: .1em; }
+
+/* Lobby-Leiste */
+.lobbybar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: rgba(18,10,58,.65); border: 2px solid var(--edge); border-radius: 6px; padding: 10px 12px; }
+.lobbybar .codebox { display: flex; flex-direction: column; flex: 1 1 140px; min-width: 0; }
+.lobbybar .codeval { font-family: var(--display); font-size: 1.8rem; letter-spacing: .22em; color: var(--legend); line-height: 1.05; }
+.lobbybar .btn { flex: 0 0 auto; }
+.status { font-size: .8rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+.dot.live { background: var(--uncommon); box-shadow: 0 0 8px var(--uncommon); }
+.dot.warn { background: var(--bad); }
+
+/* Riesige Tipp-Fläche */
+.tap {
+  position: relative; overflow: hidden; width: 100%; min-height: min(62vh, 560px);
+  appearance: none; border: 4px solid #fff3b0; border-radius: 10px; cursor: pointer; color: var(--fg);
+  background:
+    radial-gradient(60% 50% at 50% 42%, rgba(255,214,90,.55) 0%, rgba(255,140,0,.15) 45%, transparent 70%),
+    repeating-conic-gradient(from 0deg at 50% 42%, rgba(255,255,255,.07) 0deg 10deg, transparent 10deg 20deg),
+    linear-gradient(180deg, #7b2cff 0%, #3b0f9e 100%);
+  box-shadow: 0 8px 0 #1a0650, inset 0 0 60px rgba(0,0,0,.35);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 20px 12px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+}
+.tap:focus-visible { outline: 4px solid var(--rare); outline-offset: 4px; }
+.tap[disabled] { cursor: progress; filter: saturate(.5) brightness(.8); }
+.tap .chest { width: min(58%, 260px); height: auto; filter: drop-shadow(0 12px 18px rgba(0,0,0,.45)); transition: transform .08s; }
+.tap.hit .chest { animation: hop .22s ease-out; }
+@keyframes hop { 0% { transform: scale(1) } 35% { transform: scale(1.1) rotate(-3deg) } 70% { transform: scale(.96) rotate(2deg) } 100% { transform: scale(1) } }
+.tap .total { font-family: var(--display); font-size: clamp(3.6rem, 19vw, 6.5rem); line-height: .9; font-variant-numeric: tabular-nums; text-shadow: 0 5px 0 rgba(0,0,0,.4); }
+.tap .cap { font-family: var(--display); text-transform: uppercase; letter-spacing: .08em; font-size: 1.05rem; transform: skewX(-6deg); }
+.tap .mine { font-size: .9rem; font-weight: 700; color: #ffe9a8; }
+.pop { position: absolute; pointer-events: none; font-family: var(--display); font-size: 2rem; color: var(--legend); text-shadow: 0 3px 0 rgba(0,0,0,.45); animation: rise .7s ease-out forwards; }
+@keyframes rise { from { opacity: 1; transform: translate(-50%, -50%) scale(.8) } to { opacity: 0; transform: translate(-50%, -150%) scale(1.25) } }
+
+.fix { display: flex; gap: 10px; }
+.fix .btn { flex: 1 1 0; }
+
+/* Chancen */
+.odds { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.odd { background: var(--night); border-radius: 4px; padding: 12px; border-left: 6px solid var(--rare); min-width: 0; }
+.odd.leg { border-left-color: var(--legend); }
+.odd .v { font-family: var(--display); font-size: 1.7rem; font-variant-numeric: tabular-nums; line-height: 1.1; margin-top: 4px; }
+.odd .n { font-size: .8rem; color: var(--muted); line-height: 1.4; margin-top: 4px; }
+.meter { margin-top: 14px; }
+.meter .track { height: 18px; background: var(--night); border-radius: 3px; overflow: hidden; border: 2px solid var(--edge); }
+.meter .fill { height: 100%; width: 0; min-width: 3px; background: linear-gradient(90deg, var(--rare), var(--epic), var(--legend)); transition: width .3s ease; }
+.marks { display: flex; justify-content: space-between; font-size: .75rem; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; gap: 8px; flex-wrap: wrap; }
+@media (max-width: 440px) { .odds { grid-template-columns: 1fr; } }
+
+/* Rangliste */
+.players { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.player { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; background: var(--night); border-radius: 4px; padding: 10px 12px; position: relative; overflow: hidden; }
+.player .bar { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, rgba(198,75,255,.35), rgba(198,75,255,.08)); z-index: 0; transition: width .3s; }
+.player > *:not(.bar) { position: relative; z-index: 1; min-width: 0; }
+.player .rank { font-family: var(--display); font-size: 1.3rem; text-align: center; color: var(--muted); }
+.player:nth-child(1) .rank { color: var(--legend); }
+.player .nm { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player .nm small { font-weight: 500; color: var(--rare); margin-left: 6px; }
+.player .ct { font-family: var(--display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.player .pc { font-size: .75rem; color: var(--muted); text-align: right; }
+.empty { color: var(--muted); font-size: .9rem; }
+
+.notice { background: rgba(255,84,112,.15); border: 2px solid var(--bad); border-radius: 6px; padding: 12px 14px; font-size: .92rem; line-height: 1.45; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--legend); color: var(--ink); font-weight: 700; padding: 10px 16px; border-radius: 4px; box-shadow: 0 4px 0 #a35a00; z-index: 20; }
+.foot { font-size: .75rem; color: var(--muted); line-height: 1.5; text-align: center; }
+.namerow { display: flex; gap: 10px; align-items: center; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 520px) { .choice { grid-template-columns: 1fr; } }
+.pick {
+  appearance: none; cursor: pointer; text-align: left; color: var(--ink); border: 4px solid #fff3b0; border-radius: 8px;
+  padding: 22px 18px; min-height: 150px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px;
+  background: linear-gradient(160deg, #fff27a 0%, var(--legend) 45%, var(--legend2) 100%); box-shadow: 0 7px 0 #8a3f00;
+  transition: transform .06s, box-shadow .06s; font-family: var(--body);
+}
+.pick.join { color: #fff; border-color: #bfefff; background: linear-gradient(160deg, #8fe6ff 0%, var(--rare) 40%, #1a5fd6 100%); box-shadow: 0 7px 0 #0b3a8a; }
+.pick:active { transform: translateY(5px); box-shadow: 0 2px 0 #8a3f00; }
+.pick.join:active { box-shadow: 0 2px 0 #0b3a8a; }
+.pick:focus-visible { outline: 4px solid #fff; outline-offset: 3px; }
+.pk-t { font-family: var(--display); font-size: 1.9rem; text-transform: uppercase; line-height: 1; transform: skewX(-6deg); }
+.pk-s { font-weight: 700; font-size: .92rem; line-height: 1.35; opacity: .9; }
+.err { color: #ffb3bf; }
+.setgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+@media (max-width: 400px) { .setgrid { grid-template-columns: 1fr; } }
+.btn.danger { color: #fff; background: linear-gradient(180deg, #ff8a9c 0%, #e0244a 100%); box-shadow: 0 5px 0 #7a0a22; }
+.btn.danger:active { box-shadow: 0 1px 0 #7a0a22; }
+.confirm { background: rgba(255,84,112,.14); border: 2px solid var(--bad); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; line-height: 1.4; }
+.namerow input { flex: 1 1 auto; }
+@media (prefers-reduced-motion: reduce) { .tap.hit .chest, .pop, .meter .fill, .player .bar { animation: none; transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header class="logo">
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff27a"/><stop offset=".55" stop-color="#ffb11a"/><stop offset="1" stop-color="#e06a00"/></linearGradient>
+      </defs>
+      <polygon points="32,3 57,17.5 57,46.5 32,61 7,46.5 7,17.5" fill="#7a3a00"/>
+      <polygon points="32,7 53.5,19.5 53.5,44.5 32,57 10.5,44.5 10.5,19.5" fill="url(#tg)"/>
+      <polygon points="32,15 36.5,27 49,27 39,34.5 42.8,47 32,39.5 21.2,47 25,34.5 15,27 27.5,27" fill="#fff8d0" stroke="#a35a00" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <h1>Token-<em>Kisten</em>zähler</h1>
+      <div class="tag">Zusammen Kisten zählen · Chance 1 zu 137.500</div>
+    </div>
+  </header>
+
+  <div class="notice" id="nodb" hidden></div>
+
+  <!-- Startbildschirm -->
+  <section class="stack" id="start" hidden>
+    <div class="choice" id="choose">
+      <button class="pick" id="pickCreate" type="button">
+        <span class="pk-t">Lobby erstellen</span>
+        <span class="pk-s">Du startest eine neue Lobby und bekommst einen Code für dein Team.</span>
+      </button>
+      <button class="pick join" id="pickJoin" type="button">
+        <span class="pk-t">Lobby beitreten</span>
+        <span class="pk-s">Du hast einen Code von einem Freund bekommen.</span>
+      </button>
+    </div>
+
+    <section class="slab stack" id="form" hidden>
+      <h2 id="formTitle">Lobby erstellen</h2>
+      <label class="lbl" for="nameIn">Dein Spielername</label>
+      <input type="text" id="nameIn" maxlength="20" placeholder="z. B. Enrico" autocomplete="nickname">
+      <div class="stack" id="codeWrap" hidden>
+        <label class="lbl" for="codeIn">Lobby-Code (6 Zeichen)</label>
+        <input type="text" class="code" id="codeIn" maxlength="6" placeholder="ABC123" autocomplete="off">
+      </div>
+      <div class="empty err" id="startErr" hidden></div>
+      <div class="row">
+        <button class="btn ghost" id="backBtn" type="button" style="flex:0 0 auto"><span>Zurück</span></button>
+        <button class="btn" id="goBtn" type="button"><span id="goTxt">Erstellen</span></button>
+      </div>
+    </section>
+  </section>
+
+  <!-- Lobby -->
+  <section class="stack" id="lobby" hidden>
+    <div class="lobbybar">
+      <div class="codebox">
+        <span class="lbl">Lobby-Code</span>
+        <span class="codeval" id="codeVal">––––––</span>
+        <span class="status"><span class="dot" id="dot"></span><span id="statusTxt">Verbinde …</span></span>
+      </div>
+      <button class="btn small blue" id="copyBtn" type="button"><span>Link kopieren</span></button>
+    </div>
+
+    <button class="tap" id="tap" type="button" disabled aria-label="Kiste geöffnet, plus eins">
+      <svg class="chest" viewBox="0 0 200 160" aria-hidden="true">
+        <defs>
+          <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c46a2b"/><stop offset="1" stop-color="#7a3512"/></linearGradient>
+          <linearGradient id="trim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff27a"/><stop offset="1" stop-color="#e08a00"/></linearGradient>
+          <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff7c2"/><stop offset="1" stop-color="#ffb11a" stop-opacity="0"/></radialGradient>
+        </defs>
+        <ellipse cx="100" cy="62" rx="88" ry="34" fill="url(#glow)"/>
+        <path d="M22 70 Q22 26 100 22 Q178 26 178 70 Z" fill="url(#wood)" stroke="#3a1606" stroke-width="5" stroke-linejoin="round"/>
+        <path d="M22 70 Q22 26 100 22 Q178 26 178 70" fill="none" stroke="url(#trim)" stroke-width="10"/>
+        <rect x="18" y="68" width="164" height="78" rx="6" fill="url(#wood)" stroke="#3a1606" stroke-width="5"/>
+        <rect x="18" y="68" width="164" height="14" fill="url(#trim)" stroke="#3a1606" stroke-width="4"/>
+        <rect x="34" y="68" width="16" height="78" fill="url(#trim)" stroke="#3a1606" stroke-width="4"/>
+        <rect x="150" y="68" width="16" height="78" fill="url(#trim)" stroke="#3a1606" stroke-width="4"/>
+        <rect x="84" y="62" width="32" height="40" rx="5" fill="url(#trim)" stroke="#3a1606" stroke-width="4"/>
+        <circle cx="100" cy="80" r="6" fill="#3a1606"/>
+        <rect x="97" y="82" width="6" height="12" rx="2" fill="#3a1606"/>
+      </svg>
+      <span class="total" id="total">0</span>
+      <span class="cap">Kisten im Team</span>
+      <span class="mine" id="mine">Tippen = +1 Kiste für dich</span>
+    </button>
+
+    <div class="fix">
+      <button class="btn small ghost" id="minus" type="button" disabled><span>−1 vertippt</span></button>
+      <button class="btn small ghost" id="plus10" type="button" disabled><span>+10</span></button>
+    </div>
+
+    <section class="slab">
+      <h2>Chance auf den Token</h2>
+      <div class="odds">
+        <div class="odd">
+          <div class="lbl">Nächste Kiste</div>
+          <div class="v" id="next">0,000727 %</div>
+          <div class="n">Immer gleich: 1 zu 137.500. Der Token wird nicht „fällig“, egal wie viele Kisten schon offen sind.</div>
+        </div>
+        <div class="odd leg">
+          <div class="lbl">Team bis jetzt</div>
+          <div class="v" id="cum">0 %</div>
+          <div class="n" id="cumN">So wahrscheinlich wäre er bei euren Kisten schon mindestens einmal dabei gewesen.</div>
+        </div>
+      </div>
+      <div class="meter">
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <div class="marks"><span>50 % ab <b id="p50"></b></span><span>90 % ab <b id="p90"></b></span><span>99 % ab <b id="p99"></b></span></div>
+      </div>
+    </section>
+
+    <section class="slab">
+      <h2>Wer hat wie viele?</h2>
+      <ul class="players" id="players"><li class="empty">Noch niemand hat getippt.</li></ul>
+    </section>
+
+    <section class="slab stack" id="settings">
+      <h2>Lobby-Einstellungen</h2>
+      <label class="lbl" for="renameIn">Dein Name</label>
+      <div class="namerow">
+        <input type="text" id="renameIn" maxlength="20" autocomplete="nickname">
+        <button class="btn small blue" id="renameBtn" type="button" style="flex:0 0 auto"><span>Ändern</span></button>
+      </div>
+      <div class="setgrid">
+        <button class="btn small ghost" id="resetMeBtn" type="button"><span>Meine Kisten auf 0</span></button>
+        <button class="btn small ghost" id="resetAllBtn" type="button"><span>Ganzes Team auf 0</span></button>
+        <button class="btn small ghost" id="leaveBtn" type="button"><span>Lobby verlassen</span></button>
+        <button class="btn small danger" id="deleteBtn" type="button"><span>Lobby löschen</span></button>
+      </div>
+      <div class="confirm" id="confirm" hidden>
+        <strong id="confirmTxt"></strong>
+        <div class="row">
+          <button class="btn small ghost" id="noBtn" type="button"><span>Abbrechen</span></button>
+          <button class="btn small danger" id="yesBtn" type="button"><span id="yesTxt">Ja</span></button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <p class="foot">Der Stand wird online gespeichert. Mit demselben Code geht's am nächsten Tag einfach weiter.<br>Inoffizielles Fan-Tool, nicht von Epic Games.</p>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script src="supabase.js"></script>
+<script>
+(function () {
+  var SB_URL = "https://kprnmubuvsqzhsuwwkon.supabase.co";
+  var SB_KEY = "sb_publishable_gHjfRR4dzXC3Rj_zcjWByg_GI_jrfzP";
+
+  var P = 1 / 137500, LN1P = Math.log1p(-P);
+  var ALPH = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = new Intl.NumberFormat("de-DE");
+  function pct(x) {
+    var v = x * 100, d = v === 0 ? 0 : v < 0.001 ? 5 : v < 0.1 ? 4 : v < 10 ? 3 : 2;
+    return v.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }) + " %";
+  }
+  function boxesFor(t) { return Math.ceil(Math.log(1 - t) / LN1P); }
+  var B50 = boxesFor(.5);
+  $("p50").textContent = fmt.format(B50);
+  $("p90").textContent = fmt.format(boxesFor(.9));
+  $("p99").textContent = fmt.format(boxesFor(.99));
+  $("next").textContent = pct(P);
+
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+  function rand(n, alph) { var s = "", a = new Uint32Array(n); crypto.getRandomValues(a); for (var i = 0; i < n; i++) s += alph[a[i] % alph.length]; return s; }
+
+  var devId = lsGet("tkz-dev");
+  if (!devId) { devId = "d" + rand(12, "abcdefghijkmnpqrstuvwxyz23456789"); lsSet("tkz-dev", devId); }
+
+  var toastT;
+  function toast(msg) { var t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 2600); }
+
+  var sb = null;
+  try { sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false } }); } catch (e) { sb = null; }
+
+  var S = { code: null, name: lsGet("tkz-name") || "", epoch: 1, ready: false, gen: 0,
+            mine: 0, written: null, nameDirty: false, inflight: false, timer: null, chan: null, poll: null,
+            docs: {}, mode: "create", busy: false, confirmFn: null };
+
+  function cleanName(s) { return String(s || "").replace(/\s+/g, " ").trim().slice(0, 20); }
+  function cleanCode(s) { return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6); }
+  function epochOf(d) { return Math.max(1, Math.floor(Number(d && d.epoch) || 1)); }
+  function chk(res) { if (res.error) throw res.error; return res.data; }
+
+  /* ---------- Startbildschirm ---------- */
+  function showChoice() {
+    $("lobby").hidden = true; $("start").hidden = false;
+    $("choose").hidden = false; $("form").hidden = true;
+  }
+  function showForm(mode, msg) {
+    S.mode = mode;
+    $("lobby").hidden = true; $("start").hidden = false;
+    $("choose").hidden = true; $("form").hidden = false;
+    $("formTitle").textContent = mode === "join" ? "Lobby beitreten" : "Lobby erstellen";
+    $("goTxt").textContent = mode === "join" ? "Beitreten" : "Erstellen";
+    $("goBtn").className = mode === "join" ? "btn blue" : "btn";
+    $("codeWrap").hidden = mode !== "join";
+    $("nameIn").value = S.name;
+    setErr(msg || "");
+    (mode === "join" && S.name ? $("codeIn") : $("nameIn")).focus();
+  }
+  function setErr(msg) { $("startErr").hidden = !msg; $("startErr").textContent = msg; }
+
+  $("pickCreate").addEventListener("click", function () { showForm("create"); });
+  $("pickJoin").addEventListener("click", function () { showForm("join"); });
+  $("backBtn").addEventListener("click", showChoice);
+  $("codeIn").addEventListener("input", function () { this.value = cleanCode(this.value); });
+  $("codeIn").addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+  $("nameIn").addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+  $("goBtn").addEventListener("click", go);
+
+  async function go() {
+    if (!sb) { setErr("Keine Verbindung zum Server."); return; }
+    if (S.busy) return;
+    var n = cleanName($("nameIn").value);
+    if (!n) { setErr("Gib zuerst deinen Spielernamen ein."); $("nameIn").focus(); return; }
+    S.name = n; lsSet("tkz-name", n);
+    S.busy = true; $("goBtn").disabled = true; setErr("");
+    try {
+      if (S.mode === "join") {
+        var c = cleanCode($("codeIn").value);
+        if (c.length !== 6) { setErr("Der Code hat 6 Zeichen."); $("codeIn").focus(); return; }
+        var msg = await enterLobby(c);
+        if (msg) setErr(msg);
+      } else {
+        var code = null;
+        for (var i = 0; i < 5 && !code; i++) {
+          var cand = rand(6, ALPH);
+          var r = await sb.from("lobbies").insert({ code: cand });
+          if (!r.error) code = cand;
+          else if (r.error.code !== "23505") throw r.error;
+        }
+        if (!code) { setErr("Das hat nicht geklappt, bitte nochmal versuchen."); return; }
+        var m2 = await enterLobby(code);
+        if (m2) setErr(m2); else toast("Lobby erstellt – schick den Link an dein Team");
+      }
+    } catch (e) {
+      console.error(e);
+      setErr("Keine Verbindung zum Server. Bitte gleich nochmal versuchen.");
+    } finally { S.busy = false; $("goBtn").disabled = false; }
+  }
+
+  /* ---------- Lobby ---------- */
+  function setStatus(kind, txt) { $("dot").className = "dot" + (kind ? " " + kind : ""); $("statusTxt").textContent = txt; }
+  function enable(on) { ["tap", "minus", "plus10", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
+
+  function stopListening() {
+    if (S.chan) { try { sb.removeChannel(S.chan); } catch (e) {} S.chan = null; }
+    clearInterval(S.poll); clearTimeout(S.timer);
+  }
+
+  async function loadPlayers(gen) {
+    var rows = chk(await sb.from("players").select("device,name,count,epoch").eq("lobby", S.code));
+    if (gen !== S.gen) return;
+    var docs = {};
+    rows.forEach(function (r) { docs[r.device] = r; });
+    S.docs = docs; render();
+  }
+  async function loadLobby(gen) {
+    var rows = chk(await sb.from("lobbies").select("epoch,deleted").eq("code", S.code));
+    if (gen !== S.gen) return;
+    lobbyChanged(rows[0] || { deleted: true });
+  }
+  function lobbyChanged(d) {
+    var code = S.code;
+    if (d.deleted) { closeLobby(); showChoice(); toast("Die Lobby " + code + " wurde gelöscht"); return; }
+    var e = epochOf(d);
+    if (e > S.epoch) { S.epoch = e; S.mine = 0; S.written = 0; render(); toast("Der Team-Zähler wurde auf 0 gesetzt"); }
+  }
+
+  // Gibt eine Fehlermeldung zurück oder null, wenn die Lobby offen ist.
+  async function enterLobby(code) {
+    stopListening();
+    var lob = chk(await sb.from("lobbies").select("epoch,deleted").eq("code", code));
+    if (!lob.length) return "Keine Lobby mit dem Code " + code + " gefunden. Tippfehler?";
+    if (lob[0].deleted) return "Diese Lobby wurde gelöscht. Erstell einfach eine neue.";
+    var epoch = epochOf(lob[0]);
+    var own = chk(await sb.from("players").select("count,epoch").eq("lobby", code).eq("device", devId));
+
+    var gen = ++S.gen;
+    S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false;
+    S.mine = 0; S.written = own.length ? null : 0;
+    if (own.length && epochOf(own[0]) === epoch) { S.mine = Math.max(0, own[0].count || 0); S.written = S.mine; }
+    S.ready = true;
+    lsSet("tkz-lobby", code);
+    try { history.replaceState(null, "", "#" + code); } catch (e) {}
+    $("start").hidden = true; $("lobby").hidden = false; hideConfirm();
+    $("codeVal").textContent = code; $("renameIn").value = S.name;
+    enable(true); setStatus("", "Verbinde …"); render();
+
+    S.chan = sb.channel("lobby-" + code + "-" + devId)
+      .on("postgres_changes", { event: "*", schema: "public", table: "players", filter: "lobby=eq." + code }, function (p) {
+        if (gen !== S.gen) return;
+        var r = p.new && p.new.device ? p.new : null;
+        if (r) { S.docs = Object.assign({}, S.docs); S.docs[r.device] = r; render(); }
+        else loadPlayers(gen).catch(function () {});
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "lobbies", filter: "code=eq." + code }, function (p) {
+        if (gen !== S.gen || !p.new) return;
+        lobbyChanged(p.new);
+      })
+      .subscribe(function (status) {
+        if (gen !== S.gen) return;
+        if (status === "SUBSCRIBED") { setStatus("live", "Live mit dem Team verbunden"); loadPlayers(gen).catch(function () {}); }
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") setStatus("warn", "Live-Verbindung hakt – Stand wird alle paar Sekunden geholt");
+      });
+    // Sicherheitsnetz: alle 8 Sekunden nachladen, falls Live-Updates ausfallen
+    S.poll = setInterval(function () {
+      if (document.hidden) return;
+      loadPlayers(gen).catch(function () {}); loadLobby(gen).catch(function () {});
+    }, 8000);
+    await loadPlayers(gen).catch(function () {});
+    return null;
+  }
+
+  function closeLobby() {
+    stopListening(); S.gen++;
+    S.code = null; S.ready = false; S.docs = {};
+    lsSet("tkz-lobby", null); hideConfirm();
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}
+  }
+
+  function schedule() { clearTimeout(S.timer); S.timer = setTimeout(flush, 350); }
+  async function flush() {
+    if (!S.ready || S.inflight || !S.code) return;
+    if (S.mine === S.written && !S.nameDirty) return;
+    S.inflight = true;
+    var v = S.mine, code = S.code, ep = S.epoch, gen = S.gen, nd = S.nameDirty; S.nameDirty = false;
+    try {
+      chk(await sb.from("players").upsert({ lobby: code, device: devId, name: S.name, count: v, epoch: ep, updated_at: new Date().toISOString() }));
+      if (gen === S.gen && ep === S.epoch) S.written = v;
+      if (gen === S.gen && $("dot").className.indexOf("warn") >= 0 && S.chan) setStatus("live", "Live mit dem Team verbunden");
+    } catch (e) {
+      console.error(e);
+      if (nd) S.nameDirty = true;
+      if (gen === S.gen) setStatus("warn", "Speichern hakt – versuche es gleich nochmal");
+    } finally {
+      S.inflight = false;
+      if (gen === S.gen && (S.mine !== S.written || S.nameDirty)) S.timer = setTimeout(flush, 2000);
+    }
+  }
+
+  function add(k, ev) {
+    if (!S.ready) return;
+    S.mine = Math.max(0, S.mine + k);
+    render(); schedule();
+    if (k > 0) {
+      var t = $("tap"); t.classList.remove("hit"); void t.offsetWidth; t.classList.add("hit");
+      var r = t.getBoundingClientRect(), p = document.createElement("span");
+      p.className = "pop"; p.textContent = "+" + k;
+      var x = ev && ev.clientX ? ev.clientX - r.left : r.width / 2, y = ev && ev.clientY ? ev.clientY - r.top : r.height * .4;
+      p.style.left = x + "px"; p.style.top = y + "px";
+      t.appendChild(p); setTimeout(function () { p.remove(); }, 750);
+    }
+  }
+
+  function players() {
+    var docs = {};
+    Object.keys(S.docs).forEach(function (id) { if (epochOf(S.docs[id]) === S.epoch) docs[id] = S.docs[id]; });
+    if (S.ready) docs[devId] = { name: S.name, count: S.mine };
+    var by = {};
+    Object.keys(docs).forEach(function (id) {
+      var d = docs[id] || {}, nm = cleanName(d.name) || "Unbekannt", key = nm.toLowerCase();
+      var c = Math.max(0, Math.floor(Number(d.count) || 0));
+      if (!by[key]) by[key] = { name: nm, count: 0, me: false };
+      by[key].count += c;
+      if (id === devId) { by[key].me = true; by[key].name = nm; }
+    });
+    return Object.keys(by).map(function (k) { return by[k]; }).filter(function (p) { return p.count > 0 || p.me; })
+      .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name, "de"); });
+  }
+
+  function render() {
+    var list = players(), total = 0, meTotal = 0;
+    list.forEach(function (p) { total += p.count; if (p.me) meTotal = p.count; });
+    $("total").textContent = fmt.format(total);
+    $("mine").textContent = S.ready ? "Du: " + fmt.format(meTotal) + " · Tippen = +1 Kiste" : "Lade Lobby …";
+    var cum = -Math.expm1(total * LN1P);
+    $("cum").textContent = pct(cum);
+    $("fill").style.width = (cum * 100).toFixed(3) + "%";
+    $("cumN").textContent = total === 0 ? "Noch keine Kiste gezählt."
+      : total < B50 ? "Bei " + fmt.format(total) + " Kisten. Noch " + fmt.format(B50 - total) + " bis zur 50-%-Marke."
+      : "Über der 50-%-Marke. Im Schnitt braucht man 137.500 Kisten.";
+    $("minus").disabled = !S.ready || S.mine <= 0;
+
+    var ul = $("players"); ul.textContent = "";
+    if (total === 0) {
+      var li0 = document.createElement("li"); li0.className = "empty"; li0.textContent = "Noch niemand hat getippt. Los geht's!"; ul.appendChild(li0); return;
+    }
+    var max = Math.max(1, list[0].count);
+    list.forEach(function (p, i) {
+      var li = document.createElement("li"); li.className = "player";
+      var bar = document.createElement("span"); bar.className = "bar"; bar.style.width = (p.count / max * 100) + "%";
+      var rk = document.createElement("span"); rk.className = "rank"; rk.textContent = "#" + (i + 1);
+      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
+      if (p.me) { var sm = document.createElement("small"); sm.textContent = "du"; nm.appendChild(sm); }
+      var right = document.createElement("span");
+      var ct = document.createElement("div"); ct.className = "ct"; ct.textContent = fmt.format(p.count);
+      var pc = document.createElement("div"); pc.className = "pc"; pc.textContent = Math.round(p.count / total * 100) + " % vom Team";
+      right.appendChild(ct); right.appendChild(pc);
+      li.appendChild(bar); li.appendChild(rk); li.appendChild(nm); li.appendChild(right);
+      ul.appendChild(li);
+    });
+  }
+
+  /* ---------- Bestätigen ---------- */
+  function ask(text, yes, fn) {
+    S.confirmFn = fn; $("confirmTxt").textContent = text; $("yesTxt").textContent = yes;
+    $("confirm").hidden = false; $("noBtn").focus();
+  }
+  function hideConfirm() { $("confirm").hidden = true; S.confirmFn = null; }
+  $("noBtn").addEventListener("click", hideConfirm);
+  $("yesBtn").addEventListener("click", async function () {
+    var fn = S.confirmFn; hideConfirm();
+    if (!fn) return;
+    $("yesBtn").disabled = true;
+    try { await fn(); } catch (e) { console.error(e); toast("Hat nicht geklappt – bitte nochmal versuchen"); }
+    finally { $("yesBtn").disabled = false; }
+  });
+
+  /* ---------- Knöpfe ---------- */
+  $("tap").addEventListener("click", function (e) { add(1, e); });
+  $("plus10").addEventListener("click", function () { add(10); });
+  $("minus").addEventListener("click", function () { add(-1); });
+
+  $("copyBtn").addEventListener("click", function () {
+    var c = S.code || "", link = location.origin + location.pathname + "#" + c;
+    try {
+      navigator.clipboard.writeText(link).then(function () { toast("Link zur Lobby " + c + " kopiert"); }, function () { toast("Code: " + c); });
+    } catch (e) { toast("Code: " + c); }
+  });
+  $("renameBtn").addEventListener("click", function () {
+    var n = cleanName($("renameIn").value);
+    if (!n || n === S.name) return;
+    S.name = n; lsSet("tkz-name", n); S.nameDirty = true; render(); schedule(); toast("Name geändert");
+  });
+  $("resetMeBtn").addEventListener("click", function () {
+    ask("Deine Kisten in dieser Lobby auf 0 setzen? Die anderen behalten ihre.", "Ja, meine auf 0", async function () {
+      S.mine = 0; render(); schedule(); toast("Deine Kisten stehen auf 0");
+    });
+  });
+  $("resetAllBtn").addEventListener("click", function () {
+    ask("Den Zähler für das ganze Team auf 0 setzen? Das gilt für alle in der Lobby und lässt sich nicht rückgängig machen.", "Ja, alles auf 0", async function () {
+      var e = S.epoch + 1;
+      chk(await sb.from("lobbies").update({ epoch: e, updated_at: new Date().toISOString() }).eq("code", S.code));
+      S.epoch = e; S.mine = 0; S.written = 0; render();
+      toast("Team-Zähler steht auf 0");
+    });
+  });
+  $("leaveBtn").addEventListener("click", function () {
+    flush(); closeLobby(); showChoice();
+    toast("Lobby verlassen – mit dem Code kommst du wieder rein");
+  });
+  $("deleteBtn").addEventListener("click", function () {
+    ask("Lobby " + S.code + " für alle löschen? Alle Zählerstände sind dann weg und der Code funktioniert nicht mehr.", "Ja, löschen", async function () {
+      var code = S.code;
+      clearTimeout(S.timer); S.ready = false;
+      chk(await sb.from("lobbies").update({ deleted: true, updated_at: new Date().toISOString() }).eq("code", code));
+      await sb.from("players").delete().eq("lobby", code);
+      closeLobby(); showChoice(); toast("Lobby " + code + " gelöscht");
+    });
+  });
+  window.addEventListener("pagehide", flush);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); });
+
+  /* ---------- Start ---------- */
+  showChoice();
+  if (!sb) {
+    var nb = $("nodb"); nb.hidden = false; nb.textContent = "Die Seite konnte nicht laden. Bitte neu öffnen.";
+    ["pickCreate", "pickJoin"].forEach(function (id) { $(id).disabled = true; });
+    return;
+  }
+  (async function () {
+    var h = cleanCode((location.hash || "").replace("#", "")), last = cleanCode(lsGet("tkz-lobby") || "");
+    if (h.length === 6 && (h !== last || !S.name)) { $("codeIn").value = h; showForm("join"); return; }
+    if (last.length === 6 && S.name) {
+      try {
+        var msg = await enterLobby(last);
+        if (msg) { lsSet("tkz-lobby", null); showChoice(); toast(msg); }
+      } catch (e) { showChoice(); }
+    }
+  })();
+})();
+</script>
+</body>
+</html>
