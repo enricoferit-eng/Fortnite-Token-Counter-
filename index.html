@@ -227,6 +227,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
         <span class="lbl">Lobby-Code</span>
         <span class="codeval" id="codeVal">––––––</span>
         <span class="status"><span class="dot" id="dot"></span><span id="statusTxt">Verbinde …</span></span>
+        <span class="status" id="wakeTxt" hidden>☀ Bildschirm bleibt an</span>
       </div>
       <button class="btn small blue" id="copyBtn" type="button"><span>Link kopieren</span></button>
     </div>
@@ -454,6 +455,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     S.mine = 0; S.written = own.length ? null : 0;
     if (own.length && epochOf(own[0]) === epoch) { S.mine = Math.max(0, own[0].count || 0); S.written = S.mine; }
     S.ready = true;
+    keepAwake();
     lsSet("tkz-lobby", code);
     try { history.replaceState(null, "", "#" + code); } catch (e) {}
     $("start").hidden = true; $("lobby").hidden = false; hideConfirm();
@@ -485,7 +487,20 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     return null;
   }
 
+  /* ---------- Bildschirm anlassen ---------- */
+  var wake = null;
+  async function keepAwake() {
+    if (!S.ready || document.hidden || wake || !("wakeLock" in navigator)) return;
+    try {
+      wake = await navigator.wakeLock.request("screen");
+      $("wakeTxt").hidden = false;
+      wake.addEventListener("release", function () { wake = null; $("wakeTxt").hidden = true; });
+    } catch (e) { wake = null; }
+  }
+  function letSleep() { if (wake) { try { wake.release(); } catch (e) {} wake = null; } $("wakeTxt").hidden = true; }
+
   function closeLobby() {
+    letSleep();
     stopListening(); S.gen++;
     S.code = null; S.ready = false; S.docs = {};
     lsSet("tkz-lobby", null); hideConfirm();
@@ -591,7 +606,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   });
 
   /* ---------- Knöpfe ---------- */
-  $("tap").addEventListener("click", function (e) { add(1, e); });
+  $("tap").addEventListener("click", function (e) { add(1, e); keepAwake(); });
   $("plus10").addEventListener("click", function () { add(10); });
   $("minus").addEventListener("click", function () { add(-1); });
 
@@ -633,7 +648,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     });
   });
   window.addEventListener("pagehide", flush);
-  document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); });
+  document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Start ---------- */
   showChoice();
