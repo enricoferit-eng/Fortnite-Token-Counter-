@@ -166,6 +166,37 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 .update { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 30; max-width: calc(100% - 32px);
   appearance: none; cursor: pointer; border: 3px solid #fff3b0; border-radius: 6px; padding: 12px 16px; font: 700 .95rem var(--body); color: var(--ink);
   background: linear-gradient(180deg, #fff27a, var(--legend)); box-shadow: 0 5px 0 #a35a00, 0 10px 30px rgba(0,0,0,.4); }
+/* Runden */
+.rd-live { display: flex; flex-direction: column; gap: 10px; }
+.rd-run { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rd-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 10px var(--bad); animation: blink 1.2s infinite; flex: 0 0 auto; }
+@keyframes blink { 50% { opacity: .3 } }
+.rd-big { font-family: var(--display); font-size: 2.4rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.rd-sub { font-size: .85rem; color: var(--muted); line-height: 1.45; }
+.rd-list { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.rd-item > button { width: 100%; appearance: none; cursor: pointer; text-align: left; color: var(--fg); font-family: var(--body);
+  border: 2px solid var(--edge); background: var(--night); border-radius: 4px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.rd-item > button:hover { border-color: var(--rare); }
+.rd-item > button:focus-visible { outline: 3px solid var(--rare); outline-offset: 2px; }
+.rd-when { font-weight: 700; }
+.rd-meta { display: block; font-size: .8rem; color: var(--muted); }
+.rd-n { font-family: var(--display); font-size: 1.35rem; font-variant-numeric: tabular-nums; text-align: right; line-height: 1.05; }
+.rd-n small { display: block; font-family: var(--body); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.report { margin-top: 8px; background: var(--panel2); border: 2px solid var(--legend); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.report h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.3rem; text-transform: uppercase; letter-spacing: .03em; transform: skewX(-6deg); }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.kpi { background: var(--night); border-radius: 4px; padding: 10px; min-width: 0; }
+.kpi .v { font-family: var(--display); font-size: 1.5rem; font-variant-numeric: tabular-nums; line-height: 1.1; margin-top: 2px; }
+@media (max-width: 440px) { .kpis { grid-template-columns: 1fr 1fr; } }
+.rtable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .9rem; }
+.rtable th { text-align: right; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 6px 6px; }
+.rtable th:first-child, .rtable td:first-child { text-align: left; }
+.rtable td { text-align: right; padding: 8px 6px; border-top: 1px solid var(--edge); }
+.rtable td.nm { font-weight: 700; max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rtable tr:first-child td.nm::before { content: "👑 "; }
+.rwrap { overflow-x: auto; }
+.report .row .btn { flex: 0 0 auto; }
+
 /* Bildschirm-Blitz bei jedem Zählen: hell genug, um ihn aus dem Augenwinkel zu sehen */
 .flash { position: fixed; inset: 0; pointer-events: none; z-index: 25; opacity: 0;
   --fc: rgba(255, 36, 64, .95); background: rgba(255, 30, 60, .28);
@@ -352,6 +383,28 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       <button class="btn small ghost" id="minus" type="button" disabled><span>−1 vertippt</span></button>
       <button class="btn small ghost" id="plus10" type="button" disabled><span>+10</span></button>
     </div>
+
+    <section class="slab" id="roundBox">
+      <h2>Runde</h2>
+      <div class="rd-live" id="rdIdle">
+        <p class="rd-sub" style="margin:0">Starte eine Runde, wenn ihr loslegt. Am Ende bekommt ihr eine Auswertung: wer wie viele Kisten hatte, insgesamt und pro Stunde.</p>
+        <button class="btn" id="rdStart" type="button" disabled><span>Runde starten</span></button>
+      </div>
+      <div class="rd-live" id="rdActive" hidden>
+        <div class="rd-run"><span class="rd-dot"></span><strong id="rdSince">Runde läuft</strong></div>
+        <div><span class="rd-big" id="rdCount">0</span> <span class="rd-sub">Kisten in dieser Runde</span></div>
+        <div class="rd-sub" id="rdInfo"></div>
+        <button class="btn danger" id="rdEnd" type="button" disabled><span>Runde beenden</span></button>
+      </div>
+      <div class="confirm" id="rdConfirm" hidden>
+        <strong>Runde für alle beenden und auswerten?</strong>
+        <div class="row">
+          <button class="btn small ghost" id="rdNo" type="button"><span>Weiterspielen</span></button>
+          <button class="btn small danger" id="rdYes" type="button"><span>Ja, beenden</span></button>
+        </div>
+      </div>
+      <ul class="rd-list" id="rdList"></ul>
+    </section>
 
     <section class="slab">
       <h2>Chance auf den Token</h2>
@@ -600,7 +653,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 
   /* ---------- Lobby ---------- */
   function setStatus(kind, txt) { $("dot").className = "dot" + (kind ? " " + kind : ""); $("statusTxt").textContent = txt; }
-  function enable(on) { ["tap", "vault", "minus", "plus10", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
+  function enable(on) { ["tap", "vault", "minus", "plus10", "rdStart", "rdEnd", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
 
   function stopListening() {
     if (S.chan) { try { sb.removeChannel(S.chan); } catch (e) {} S.chan = null; }
@@ -641,7 +694,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     var own = chk(await sb.from("players").select("count,count15,count2,epoch").eq("lobby", code).eq("device", devId));
 
     var gen = ++S.gen;
-    S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false;
+    S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false; S.rounds = []; S.openRound = null;
     S.mine = zero(); S.written = own.length ? null : zero();
     if (own.length && epochOf(own[0]) === epoch) { S.mine = fromRow(own[0]); S.written = fromRow(own[0]); }
     S.tmode = MODES[lob[0].mode] ? lob[0].mode : "normal"; S.tmodeAt = lob[0].mode_at || null;
@@ -664,6 +717,15 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
         if (gen !== S.gen || !p.new) return;
         lobbyChanged(p.new);
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "rounds", filter: "lobby=eq." + code }, function (p) {
+        if (gen !== S.gen) return;
+        var was = activeRound();
+        loadRounds(gen).then(function () {
+          var now = activeRound();
+          if (!was && now && now.started_by !== S.name) toast(now.started_by + " hat eine Runde gestartet");
+          if (was && !now) { var r = (S.rounds || []).filter(function (x) { return x.id === was.id; })[0]; if (r && r.ended_by !== S.name) { S.openRound = r.id; renderRounds(); toast((r.ended_by || "Jemand") + " hat die Runde beendet – Auswertung ist da"); } }
+        }).catch(function () {});
+      })
       .subscribe(function (status) {
         if (gen !== S.gen) return;
         if (status === "SUBSCRIBED") { setStatus("live", "Live mit dem Team verbunden"); loadPlayers(gen).catch(function () {}); }
@@ -672,11 +734,173 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     // Sicherheitsnetz: alle 8 Sekunden nachladen, falls Live-Updates ausfallen
     S.poll = setInterval(function () {
       if (document.hidden) return;
-      loadPlayers(gen).catch(function () {}); loadLobby(gen).catch(function () {});
+      loadPlayers(gen).catch(function () {}); loadLobby(gen).catch(function () {}); loadRounds(gen).catch(function () {});
     }, 8000);
     await loadPlayers(gen).catch(function () {});
+    await loadRounds(gen).catch(function () {});
     return null;
   }
+
+  /* ---------- Runden ---------- */
+  // Eine Runde merkt sich beim Start und beim Ende die Zählerstände jedes Geräts.
+  // Die Auswertung ist der Unterschied dazwischen.
+  function snapshot() {
+    var snap = {};
+    Object.keys(S.docs).forEach(function (id) {
+      var d = S.docs[id] || {}, o = fromRow(d);
+      snap[id] = { name: cleanName(d.name) || "Unbekannt", epoch: epochOf(d), count: o.count, count15: o.count15, count2: o.count2 };
+    });
+    if (S.ready) snap[devId] = { name: S.name, epoch: S.epoch, count: S.mine.count, count15: S.mine.count15, count2: S.mine.count2 };
+    return snap;
+  }
+  function roundResult(start, end) {
+    start = start || {}; end = end || {};
+    var by = {}, team = zero();
+    Object.keys(end).forEach(function (id) {
+      var e = end[id] || {}, s = start[id], base = s && epochOf(s) === epochOf(e) ? fromRow(s) : zero(), cur = fromRow(e), d = zero();
+      COLS.forEach(function (c) { d[c] = Math.max(0, cur[c] - base[c]); });
+      if (!tot(d)) return;
+      var nm = cleanName(e.name) || "Unbekannt", key = nm.toLowerCase();
+      if (!by[key]) by[key] = { name: nm, m: zero() };
+      COLS.forEach(function (c) { by[key].m[c] += d[c]; team[c] += d[c]; });
+    });
+    var people = Object.keys(by).map(function (k) { var p = by[k]; p.count = tot(p.m); p.boost = p.m.count15 + p.m.count2; return p; })
+      .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name, "de"); });
+    return { people: people, team: team, total: tot(team) };
+  }
+  function hm(t) { return new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); }
+  function dayTxt(t) { return new Date(t).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "numeric" }); }
+  function durTxt(ms) {
+    var m = Math.max(0, Math.round(ms / 60000)), h = Math.floor(m / 60);
+    return h ? h + " Std " + (m % 60) + " Min" : m + " Min";
+  }
+  function activeRound() { return (S.rounds || []).filter(function (r) { return !r.ended_at; })[0] || null; }
+
+  async function loadRounds(gen) {
+    var rows = chk(await sb.from("rounds").select("*").eq("lobby", S.code).order("started_at", { ascending: false }).limit(20));
+    if (gen !== S.gen) return;
+    S.rounds = rows; renderRounds();
+  }
+
+  function renderRounds() {
+    if (!S.ready) return;
+    var act = activeRound();
+    $("rdIdle").hidden = !!act; $("rdActive").hidden = !act;
+    if (!act) $("rdConfirm").hidden = true;
+    if (act) {
+      var res = roundResult(act.start_counts, snapshot());
+      $("rdSince").textContent = "Runde läuft seit " + hm(act.started_at) + " Uhr · " + durTxt(Date.now() - new Date(act.started_at));
+      $("rdCount").textContent = fmt.format(res.total);
+      var me = res.people.filter(function (p) { return p.name.toLowerCase() === S.name.toLowerCase(); })[0];
+      $("rdInfo").textContent = "Gestartet von " + (act.started_by || "?") + " · du: " + fmt.format(me ? me.count : 0) + " Kisten";
+    }
+    // Liste der beendeten Runden
+    var done = (S.rounds || []).filter(function (r) { return r.ended_at; });
+    var ul = $("rdList"); ul.textContent = "";
+    done.forEach(function (r) {
+      var res = roundResult(r.start_counts, r.end_counts);
+      var li = document.createElement("li"); li.className = "rd-item";
+      var b = document.createElement("button"); b.type = "button";
+      b.setAttribute("aria-expanded", String(S.openRound === r.id));
+      var left = document.createElement("div");
+      var w = document.createElement("span"); w.className = "rd-when"; w.textContent = dayTxt(r.started_at) + " · " + hm(r.started_at) + "–" + hm(r.ended_at);
+      var m = document.createElement("span"); m.className = "rd-meta"; m.textContent = durTxt(new Date(r.ended_at) - new Date(r.started_at)) + " · " + res.people.length + " Spieler" + (S.openRound === r.id ? " · zuklappen" : " · Auswertung ansehen");
+      left.appendChild(w); left.appendChild(m);
+      var n = document.createElement("span"); n.className = "rd-n"; n.textContent = fmt.format(res.total);
+      var sm = document.createElement("small"); sm.textContent = "Kisten"; n.appendChild(sm);
+      b.appendChild(left); b.appendChild(n);
+      b.addEventListener("click", function () { S.openRound = S.openRound === r.id ? null : r.id; renderRounds(); });
+      li.appendChild(b);
+      if (S.openRound === r.id) li.appendChild(reportEl(r, res));
+      ul.appendChild(li);
+    });
+  }
+
+  function reportEl(r, res) {
+    var box = document.createElement("div"); box.className = "report";
+    var ms = new Date(r.ended_at) - new Date(r.started_at), hrs = ms / 36e5;
+    var h3 = document.createElement("h3"); h3.textContent = "Auswertung " + dayTxt(r.started_at) + ", " + hm(r.started_at) + "–" + hm(r.ended_at) + " Uhr";
+    box.appendChild(h3);
+    var kpis = document.createElement("div"); kpis.className = "kpis";
+    var chance = -Math.expm1(logNone(res.team));
+    [["Kisten gesamt", fmt.format(res.total)],
+     ["Dauer", durTxt(ms)],
+     ["Pro Stunde", hrs >= 1 / 60 ? fmt.format(Math.round(res.total / hrs)) : "–"],
+     ["Spieler", String(res.people.length)],
+     ["In Schatzstunden", fmt.format(res.team.count15 + res.team.count2)],
+     ["Token-Chance", pct(chance)]].forEach(function (k) {
+      var d = document.createElement("div"); d.className = "kpi";
+      var l = document.createElement("div"); l.className = "lbl"; l.textContent = k[0];
+      var v = document.createElement("div"); v.className = "v"; v.textContent = k[1];
+      d.appendChild(l); d.appendChild(v); kpis.appendChild(d);
+    });
+    box.appendChild(kpis);
+    var note = document.createElement("div"); note.className = "rd-sub";
+    note.textContent = "Token-Chance = so wahrscheinlich war mindestens ein Token bei den Kisten dieser Runde. Gestartet von " + (r.started_by || "?") + ", beendet von " + (r.ended_by || "?") + ".";
+    if (res.people.length) {
+      var wrap = document.createElement("div"); wrap.className = "rwrap";
+      var t = document.createElement("table"); t.className = "rtable";
+      var head = document.createElement("tr");
+      ["Spieler", "Kisten", "Anteil", "Pro Std", "Schatzst."].forEach(function (h) { var th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
+      t.appendChild(head);
+      res.people.forEach(function (p) {
+        var tr = document.createElement("tr");
+        [p.name, fmt.format(p.count), Math.round(p.count / res.total * 100) + " %", hrs >= 1 / 60 ? fmt.format(Math.round(p.count / hrs)) : "–", fmt.format(p.boost)].forEach(function (v, i) {
+          var td = document.createElement("td"); td.textContent = v; if (i === 0) td.className = "nm"; tr.appendChild(td);
+        });
+        t.appendChild(tr);
+      });
+      wrap.appendChild(t); box.appendChild(wrap);
+    } else {
+      var e = document.createElement("div"); e.className = "empty"; e.textContent = "In dieser Runde wurden keine Kisten gezählt."; box.appendChild(e);
+    }
+    box.appendChild(note);
+    var row = document.createElement("div"); row.className = "row";
+    var del = document.createElement("button"); del.type = "button"; del.className = "btn small ghost";
+    var sp = document.createElement("span"); sp.textContent = "Runde aus der Liste löschen"; del.appendChild(sp);
+    del.addEventListener("click", function () {
+      ask("Diese Runde mit ihrer Auswertung für alle löschen? Die Kisten im Lobby-Zähler bleiben.", "Ja, Runde löschen", async function () {
+        chk(await sb.from("rounds").delete().eq("id", r.id));
+        S.rounds = S.rounds.filter(function (x) { return x.id !== r.id; }); S.openRound = null; renderRounds();
+        toast("Runde gelöscht");
+      });
+      $("settings").scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+    row.appendChild(del); box.appendChild(row);
+    return box;
+  }
+
+  $("rdStart").addEventListener("click", async function () {
+    if (!S.ready || activeRound()) return;
+    var gen = S.gen, btn = $("rdStart"); btn.disabled = true;
+    try {
+      clearTimeout(S.timer); await flush();
+      await loadPlayers(gen);
+      var r = await sb.from("rounds").insert({ lobby: S.code, started_by: S.name, start_counts: snapshot() }).select();
+      if (r.error && r.error.code !== "23505") throw r.error;
+      await loadRounds(gen);
+      toast(r.error ? "Es läuft schon eine Runde" : "Runde gestartet – viel Glück!");
+    } catch (e) { console.error(e); toast("Runde konnte nicht starten – bitte nochmal versuchen"); }
+    finally { btn.disabled = false; }
+  });
+  $("rdEnd").addEventListener("click", function () { $("rdConfirm").hidden = false; $("rdNo").focus(); });
+  $("rdNo").addEventListener("click", function () { $("rdConfirm").hidden = true; });
+  $("rdYes").addEventListener("click", async function () {
+    var act = activeRound(); if (!act) { $("rdConfirm").hidden = true; return; }
+    var gen = S.gen, btn = $("rdYes"); btn.disabled = true;
+    try {
+      clearTimeout(S.timer); await flush();
+      await loadPlayers(gen);
+      chk(await sb.from("rounds").update({ ended_at: new Date().toISOString(), ended_by: S.name, end_counts: snapshot() }).eq("id", act.id).is("ended_at", null));
+      S.openRound = act.id;
+      await loadRounds(gen);
+      $("rdConfirm").hidden = true;
+      toast("Runde beendet – hier ist eure Auswertung");
+      var li = $("rdList").firstChild; if (li) li.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (e) { console.error(e); toast("Runde konnte nicht beendet werden – bitte nochmal versuchen"); }
+    finally { btn.disabled = false; }
+  });
+  setInterval(function () { if (S.ready && !document.hidden && activeRound()) renderRounds(); }, 30000);
 
   /* ---------- Bildschirm anlassen ---------- */
   var wake = null;
@@ -757,6 +981,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   }
 
   function render() {
+    renderRounds();
     var list = players(), total = 0, meTotal = 0, team = zero();
     list.forEach(function (p) { total += p.count; if (p.me) meTotal = p.count; COLS.forEach(function (c) { team[c] += p.m[c]; }); });
     var mode = MODES[S.tmode] ? S.tmode : "normal", M = MODES[mode], boosted = mode !== "normal";
@@ -892,6 +1117,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       clearTimeout(S.timer); S.ready = false;
       chk(await sb.from("lobbies").update({ deleted: true, updated_at: new Date().toISOString() }).eq("code", code));
       await sb.from("players").delete().eq("lobby", code);
+      await sb.from("rounds").delete().eq("lobby", code);
       forget(code); closeLobby(); showChoice(); toast("Lobby " + code + " gelöscht");
     });
   });
@@ -899,7 +1125,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121195322", newV = null;
+  var VERSION = "20261121200128", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
