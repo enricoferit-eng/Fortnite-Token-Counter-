@@ -163,6 +163,20 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 .pk-t { font-family: var(--display); font-size: 1.9rem; text-transform: uppercase; line-height: 1; transform: skewX(-6deg); }
 .pk-s { font-weight: 700; font-size: .92rem; line-height: 1.35; opacity: .9; }
 .err { color: #ffb3bf; }
+.lobbylist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lob { display: flex; gap: 8px; align-items: stretch; }
+.lob-go { flex: 1 1 auto; min-width: 0; appearance: none; cursor: pointer; text-align: left; color: var(--fg); font-family: var(--body);
+  border: 2px solid var(--edge); background: var(--night); border-radius: 4px; padding: 10px 12px;
+  display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+.lob-go:hover { border-color: var(--rare); }
+.lob-go:focus-visible, .lob-x:focus-visible { outline: 3px solid var(--rare); outline-offset: 2px; }
+.lob-go > div { min-width: 0; }
+.lob-code { display: block; font-family: var(--display); font-size: 1.45rem; letter-spacing: .16em; color: var(--legend); line-height: 1.1; }
+.lob-meta { display: block; font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lob-total { font-family: var(--display); font-size: 1.35rem; font-variant-numeric: tabular-nums; text-align: right; line-height: 1.05; }
+.lob-total small { display: block; font-family: var(--body); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lob-x { flex: 0 0 44px; appearance: none; cursor: pointer; border: 2px solid var(--edge); background: var(--panel2); color: var(--muted); border-radius: 4px; font-size: 1.3rem; line-height: 1; }
+.lob-x:hover { color: var(--bad); border-color: var(--bad); }
 .setgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
 @media (max-width: 400px) { .setgrid { grid-template-columns: 1fr; } }
 .btn.danger { color: #fff; background: linear-gradient(180deg, #ff8a9c 0%, #e0244a 100%); box-shadow: 0 5px 0 #7a0a22; }
@@ -204,6 +218,11 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       </button>
     </div>
 
+    <section class="slab" id="myLobbies" hidden>
+      <h2>Deine Lobbys</h2>
+      <ul class="lobbylist" id="lobbyList"></ul>
+    </section>
+
     <section class="slab stack" id="form" hidden>
       <h2 id="formTitle">Lobby erstellen</h2>
       <label class="lbl" for="nameIn">Dein Spielername</label>
@@ -230,6 +249,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
         <span class="status" id="wakeTxt" hidden>☀ Bildschirm bleibt an</span>
       </div>
       <button class="btn small blue" id="copyBtn" type="button"><span>Link kopieren</span></button>
+      <button class="btn small ghost" id="menuBtn" type="button"><span>Menü</span></button>
     </div>
 
     <button class="tap" id="tap" type="button" disabled aria-label="Kiste geöffnet, plus eins">
@@ -355,15 +375,93 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   function epochOf(d) { return Math.max(1, Math.floor(Number(d && d.epoch) || 1)); }
   function chk(res) { if (res.error) throw res.error; return res.data; }
 
+  /* ---------- Deine Lobbys (auf diesem Gerät gemerkt) ---------- */
+  function myList() {
+    try { var a = JSON.parse(lsGet("tkz-lobbies") || "[]"); return Array.isArray(a) ? a.filter(function (x) { return x && cleanCode(x.code).length === 6; }) : []; }
+    catch (e) { return []; }
+  }
+  function saveList(a) { lsSet("tkz-lobbies", JSON.stringify(a.slice(0, 20))); }
+  function remember(code) { var a = myList().filter(function (x) { return x.code !== code; }); a.unshift({ code: code, at: Date.now() }); saveList(a); }
+  function forget(code) { saveList(myList().filter(function (x) { return x.code !== code; })); }
+  (function () { var l = cleanCode(lsGet("tkz-lobby") || ""); if (l.length === 6 && !myList().some(function (x) { return x.code === l; })) remember(l); })();
+
+  function whenTxt(t) {
+    var d = new Date(t), now = new Date(), day = 864e5;
+    var a = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime(), b = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    var diff = Math.round((a - b) / day);
+    return diff <= 0 ? "heute" : diff === 1 ? "gestern" : "am " + d.toLocaleDateString("de-DE", { day: "numeric", month: "numeric" });
+  }
+
+  var listGen = 0;
+  async function renderLobbyList() {
+    var gen = ++listGen, list = myList(), ul = $("lobbyList");
+    $("myLobbies").hidden = !list.length;
+    ul.textContent = "";
+    if (!list.length) return;
+    var cells = {};
+    list.forEach(function (x) {
+      var li = document.createElement("li"); li.className = "lob";
+      var go = document.createElement("button"); go.type = "button"; go.className = "lob-go";
+      var left = document.createElement("div");
+      var c = document.createElement("span"); c.className = "lob-code"; c.textContent = x.code;
+      var m = document.createElement("span"); m.className = "lob-meta"; m.textContent = "zuletzt " + whenTxt(x.at);
+      left.appendChild(c); left.appendChild(m);
+      var t = document.createElement("span"); t.className = "lob-total"; t.textContent = "…";
+      go.appendChild(left); go.appendChild(t);
+      go.setAttribute("aria-label", "Lobby " + x.code + " öffnen");
+      go.addEventListener("click", function () { openSaved(x.code); });
+      var del = document.createElement("button"); del.type = "button"; del.className = "lob-x"; del.textContent = "×";
+      del.setAttribute("aria-label", "Lobby " + x.code + " aus der Liste entfernen");
+      del.addEventListener("click", function () { forget(x.code); renderLobbyList(); toast("Lobby " + x.code + " aus deiner Liste entfernt"); });
+      li.appendChild(go); li.appendChild(del); ul.appendChild(li);
+      cells[x.code] = { li: li, meta: m, total: t, at: x.at };
+    });
+    if (!sb) return;
+    try {
+      var codes = list.map(function (x) { return x.code; });
+      var lobs = chk(await sb.from("lobbies").select("code,epoch,deleted").in("code", codes));
+      var pls = chk(await sb.from("players").select("lobby,name,count,epoch").in("lobby", codes));
+      if (gen !== listGen) return;
+      var info = {};
+      lobs.forEach(function (l) { info[l.code] = { epoch: epochOf(l), deleted: !!l.deleted, total: 0, names: {} }; });
+      pls.forEach(function (r) {
+        var i = info[r.lobby]; if (!i || epochOf(r) !== i.epoch) return;
+        var n = Math.max(0, Math.floor(r.count || 0)); i.total += n;
+        if (n > 0) i.names[(cleanName(r.name) || "?").toLowerCase()] = 1;
+      });
+      codes.forEach(function (code) {
+        var i = info[code], cell = cells[code];
+        if (!i || i.deleted) { forget(code); cell.li.remove(); return; }
+        var np = Object.keys(i.names).length;
+        cell.total.textContent = fmt.format(i.total);
+        var sm = document.createElement("small"); sm.textContent = "Kisten"; cell.total.appendChild(sm);
+        cell.meta.textContent = np + (np === 1 ? " Spieler" : " Spieler") + " · zuletzt " + whenTxt(cell.at);
+      });
+      if (!myList().length) $("myLobbies").hidden = true;
+    } catch (e) { /* Liste bleibt ohne Zahlen */ }
+  }
+
+  async function openSaved(code) {
+    if (S.busy) return;
+    if (!S.name) { $("codeIn").value = code; showForm("join"); return; }
+    S.busy = true;
+    try {
+      var msg = await enterLobby(code);
+      if (msg) { forget(code); toast(msg); renderLobbyList(); }
+    } catch (e) { toast("Keine Verbindung zum Server. Bitte gleich nochmal versuchen."); }
+    finally { S.busy = false; }
+  }
+
   /* ---------- Startbildschirm ---------- */
   function showChoice() {
     $("lobby").hidden = true; $("start").hidden = false;
     $("choose").hidden = false; $("form").hidden = true;
+    renderLobbyList();
   }
   function showForm(mode, msg) {
     S.mode = mode;
     $("lobby").hidden = true; $("start").hidden = false;
-    $("choose").hidden = true; $("form").hidden = false;
+    $("choose").hidden = true; $("form").hidden = false; $("myLobbies").hidden = true;
     $("formTitle").textContent = mode === "join" ? "Lobby beitreten" : "Lobby erstellen";
     $("goTxt").textContent = mode === "join" ? "Beitreten" : "Erstellen";
     $("goBtn").className = mode === "join" ? "btn blue" : "btn";
@@ -436,7 +534,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   }
   function lobbyChanged(d) {
     var code = S.code;
-    if (d.deleted) { closeLobby(); showChoice(); toast("Die Lobby " + code + " wurde gelöscht"); return; }
+    if (d.deleted) { forget(code); closeLobby(); showChoice(); toast("Die Lobby " + code + " wurde gelöscht"); return; }
     var e = epochOf(d);
     if (e > S.epoch) { S.epoch = e; S.mine = 0; S.written = 0; render(); toast("Der Team-Zähler wurde auf 0 gesetzt"); }
   }
@@ -456,7 +554,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     if (own.length && epochOf(own[0]) === epoch) { S.mine = Math.max(0, own[0].count || 0); S.written = S.mine; }
     S.ready = true;
     keepAwake();
-    lsSet("tkz-lobby", code);
+    lsSet("tkz-lobby", code); remember(code);
     try { history.replaceState(null, "", "#" + code); } catch (e) {}
     $("start").hidden = true; $("lobby").hidden = false; hideConfirm();
     $("codeVal").textContent = code; $("renameIn").value = S.name;
@@ -634,9 +732,13 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       toast("Team-Zähler steht auf 0");
     });
   });
-  $("leaveBtn").addEventListener("click", function () {
+  $("menuBtn").addEventListener("click", function () {
     flush(); closeLobby(); showChoice();
-    toast("Lobby verlassen – mit dem Code kommst du wieder rein");
+  });
+  $("leaveBtn").addEventListener("click", function () {
+    var code = S.code;
+    flush(); forget(code); closeLobby(); showChoice();
+    toast("Lobby verlassen und aus deiner Liste entfernt – mit dem Code kommst du wieder rein");
   });
   $("deleteBtn").addEventListener("click", function () {
     ask("Lobby " + S.code + " für alle löschen? Alle Zählerstände sind dann weg und der Code funktioniert nicht mehr.", "Ja, löschen", async function () {
@@ -644,7 +746,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       clearTimeout(S.timer); S.ready = false;
       chk(await sb.from("lobbies").update({ deleted: true, updated_at: new Date().toISOString() }).eq("code", code));
       await sb.from("players").delete().eq("lobby", code);
-      closeLobby(); showChoice(); toast("Lobby " + code + " gelöscht");
+      forget(code); closeLobby(); showChoice(); toast("Lobby " + code + " gelöscht");
     });
   });
   window.addEventListener("pagehide", flush);
