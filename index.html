@@ -50,6 +50,7 @@ main { max-width: 620px; margin: 0 auto; display: flex; flex-direction: column; 
 .logo svg { width: 52px; height: 52px; flex: 0 0 auto; filter: drop-shadow(0 4px 0 rgba(0,0,0,.35)); }
 h1 { font-family: var(--display); font-weight: 400; text-transform: uppercase; margin: 0; line-height: .95; font-size: clamp(1.9rem, 8vw, 2.8rem); letter-spacing: .01em; transform: skewX(-6deg); text-shadow: 0 3px 0 rgba(0,0,0,.35); }
 h1 em { font-style: normal; color: var(--legend); }
+body.gold h1 em { color: #fff; text-shadow: 0 0 12px #ff8a00, 0 3px 0 rgba(0,0,0,.35); }
 .tag { font-size: .85rem; color: var(--muted); margin-top: 2px; }
 
 /* Schräge Panels */
@@ -130,9 +131,15 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 .vault .vt { font: 400 1.6rem var(--display); text-transform: uppercase; letter-spacing: .04em; transform: skewX(-6deg); text-shadow: 0 3px 0 rgba(0,0,0,.35); line-height: 1; }
 .vault .vt b { color: var(--legend); font-weight: 400; }
 .vault .vs { display: block; font: 700 .78rem var(--body); letter-spacing: .02em; text-transform: none; transform: none; text-shadow: none; opacity: .85; margin-top: 4px; }
-.vault.hit svg { animation: spin .35s ease-out; }
-@keyframes spin { 0% { transform: rotate(0) } 60% { transform: rotate(-25deg) scale(1.08) } 100% { transform: rotate(0) } }
-@media (prefers-reduced-motion: reduce) { .vault.hit svg { animation: none; } }
+.vault svg { overflow: visible; }
+.vault .dial { transform-box: fill-box; transform-origin: center; }
+.vault .door { transform-box: fill-box; transform-origin: 0% 50%; }
+.vault.crack .dial { animation: dial .45s ease-in-out; }
+.vault.crack .door { animation: door .6s .4s ease-in-out; }
+.vault.crack { animation: vshake .4s; }
+@keyframes dial { to { transform: rotate(540deg) } }
+@keyframes door { 0% { transform: none } 45% { transform: scaleX(.12) skewY(-8deg) } 100% { transform: none } }
+@keyframes vshake { 25% { transform: translateX(-3px) } 50% { transform: translateX(3px) } 75% { transform: translateX(-2px) } }
 .fix { display: flex; gap: 10px; }
 .fix .btn { flex: 1 1 0; }
 
@@ -226,10 +233,54 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
 #thBox .seg-b { padding: 8px 4px; }
 @media (max-width: 400px) { .tab { font-size: .95rem; padding: 9px 2px; } }
 
+/* Welle 1 */
+#sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#fx { position: fixed; inset: 0; z-index: 24; pointer-events: none; }
+main { position: relative; z-index: 1; }
+.chest { overflow: visible; }
+.chest .lid { transform-box: fill-box; transform-origin: 8% 100%; }
+.chest .beam { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; }
+.tap.open .lid { animation: lid .55s cubic-bezier(.2,1.5,.4,1); }
+.tap.open .beam { animation: beam .6s ease-out; }
+@keyframes lid { 0% { transform: none } 22% { transform: translateY(-20px) rotate(-14deg) } 60% { transform: translateY(-10px) rotate(-5deg) } 100% { transform: none } }
+@keyframes beam { 0% { opacity: 0; transform: scaleY(.2) } 18% { opacity: 1; transform: scaleY(1) } 100% { opacity: 0; transform: scaleY(1.2) } }
+.tap.rare .chest { filter: hue-rotate(255deg) saturate(1.6) drop-shadow(0 0 26px #c64bff); }
+.tap.legend .chest { filter: saturate(1.7) brightness(1.2) drop-shadow(0 0 34px #ffd23a); }
+.tap > svg, .tap > .total, .tap > .cap, .tap > .mine { position: relative; z-index: 1; }
+.tap::before { content: ""; position: absolute; inset: auto 0 0 0; height: 70%; z-index: 0; opacity: 0; pointer-events: none; transition: opacity .3s;
+  background: radial-gradient(40% 60% at 30% 100%, rgba(255,90,0,.9), transparent 70%), radial-gradient(35% 70% at 70% 100%, rgba(255,40,0,.85), transparent 70%), radial-gradient(50% 50% at 50% 100%, rgba(255,210,60,.9), transparent 70%); }
+.tap.fire::before { opacity: 1; animation: flick .18s infinite alternate; }
+@keyframes flick { from { transform: scaleY(1) translateY(0); filter: blur(2px) } to { transform: scaleY(1.12) translateY(-4px); filter: blur(4px) } }
+.combo { position: absolute; top: 54px; right: 12px; z-index: 3; transform: skewX(-8deg); font: 400 1.5rem var(--display); letter-spacing: .03em; padding: 4px 12px; border-radius: 4px;
+  color: #fff; background: var(--rare); box-shadow: 0 4px 0 rgba(0,0,0,.35); text-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.combo[data-tier="2"] { background: var(--epic); font-size: 1.75rem; }
+.combo[data-tier="3"] { background: linear-gradient(180deg, #ffb11a, #ff5a00); font-size: 2rem; }
+.combo[data-tier="4"] { background: linear-gradient(180deg, #ff3b3b, #a10000); font-size: 2.3rem; box-shadow: 0 0 24px #ff3b3b, 0 4px 0 rgba(0,0,0,.35); }
+.combo.bump { animation: cbump .22s ease-out; }
+@keyframes cbump { 0% { transform: skewX(-8deg) scale(1.35) } 100% { transform: skewX(-8deg) scale(1) } }
+.rarelbl { position: absolute; top: 32%; left: 50%; z-index: 3; pointer-events: none; font: 400 2.6rem var(--display); letter-spacing: .04em; color: #fff; white-space: nowrap;
+  text-shadow: 0 0 18px #c64bff, 0 4px 0 #3a0b66; transform: translate(-50%, -50%) skewX(-8deg); opacity: 0; }
+.rarelbl[data-kind="legend"] { color: #fff6c0; text-shadow: 0 0 22px #ffb11a, 0 4px 0 #7a3a00; font-size: 3rem; }
+.rarelbl.go { animation: rpop .95s ease-out forwards; }
+@keyframes rpop { 0% { opacity: 0; transform: translate(-50%, -30%) skewX(-8deg) scale(.6) } 20% { opacity: 1; transform: translate(-50%, -50%) skewX(-8deg) scale(1.15) } 75% { opacity: 1 } 100% { opacity: 0; transform: translate(-50%, -90%) skewX(-8deg) scale(1) } }
+.snd { flex: 0 0 auto; min-width: 48px; }
+.goldbar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; text-align: center; padding: 10px 14px; border-radius: 6px; color: var(--ink);
+  background: linear-gradient(110deg, #ffb11a 0%, #fff27a 25%, #ffb11a 50%, #fff27a 75%, #ffb11a 100%); background-size: 300% 100%; animation: shine 3s linear infinite;
+  border: 3px solid #fff3b0; box-shadow: 0 0 30px rgba(255,190,40,.6), 0 5px 0 #a35a00; }
+.goldbar b { font: 400 1.5rem var(--display); letter-spacing: .05em; transform: skewX(-6deg); }
+.goldbar span { font-weight: 700; font-size: .9rem; }
+@keyframes shine { to { background-position: -300% 0 } }
+body.gold .slab { border-color: #e6b13a; }
+.avs { display: flex; margin-top: 6px; }
+.av { width: 26px; height: 26px; border-radius: 50%; margin-right: -6px; border: 2px solid var(--night); display: grid; place-items: center; font: 700 .72rem var(--body); color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,.4); }
+.lob-live { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--uncommon); box-shadow: 0 0 8px var(--uncommon); margin-right: 6px; vertical-align: middle; }
+@media (prefers-reduced-motion: reduce) { .goldbar { animation: none; } .tap.fire::before { animation: none; } }
+
 /* Bildschirm-Blitz bei jedem Zählen: hell genug, um ihn aus dem Augenwinkel zu sehen */
 .flash { position: fixed; inset: 0; pointer-events: none; z-index: 25; opacity: 0;
   --fc: rgba(255, 20, 50, 1); background: rgba(255, 25, 55, .5);
   box-shadow: inset 0 0 0 22px var(--fc), inset 0 0 220px 90px var(--fc); }
+.flash.lite { background: transparent; box-shadow: inset 0 0 0 14px var(--fc), inset 0 0 70px 14px var(--fc); }
 .flash.big { --fc: rgba(60, 225, 255, 1); background: rgba(60, 225, 255, .5); }
 .flash.go { animation: flash .6s ease-out; }
 .flash.big.go { animation: flash2 .9s ease-out; }
@@ -298,6 +349,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
 </style>
 </head>
 <body>
+<canvas id="sky" aria-hidden="true"></canvas>
 <main>
   <header class="logo">
     <svg viewBox="0 0 64 64" aria-hidden="true">
@@ -360,8 +412,11 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
         <span class="status" id="wakeTxt" hidden>☀ Bildschirm bleibt an</span>
       </div>
       <button class="btn small blue" id="copyBtn" type="button"><span>Link kopieren</span></button>
+      <button class="btn small ghost snd" id="soundBtn" type="button" aria-pressed="false" aria-label="Ton an"><span>🔇</span></button>
       <button class="btn small ghost" id="menuBtn" type="button"><span>Menü</span></button>
     </div>
+
+    <div class="goldbar" id="goldBar" hidden><b>SCHATZSTUNDE</b><span></span></div>
 
     <section class="slab" id="thBox">
       <div class="th-head"><h2>Schatzstunde</h2><span class="th-state" id="thState">aus</span></div>
@@ -375,19 +430,25 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
 
     <button class="tap" id="tap" type="button" disabled aria-label="Kiste geöffnet, plus eins">
       <span class="boostbadge" id="boostBadge" hidden>Schatzstunde 1,5×</span>
+      <span class="combo" id="combo" hidden></span>
+      <span class="rarelbl" id="rareLbl" hidden></span>
       <svg class="chest" viewBox="0 0 200 160" aria-hidden="true">
         <defs>
           <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c46a2b"/><stop offset="1" stop-color="#7a3512"/></linearGradient>
           <linearGradient id="trim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff27a"/><stop offset="1" stop-color="#e08a00"/></linearGradient>
           <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff7c2"/><stop offset="1" stop-color="#ffb11a" stop-opacity="0"/></radialGradient>
+          <linearGradient id="beamg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff7c2" stop-opacity=".95"/><stop offset="1" stop-color="#ffd23a" stop-opacity="0"/></linearGradient>
         </defs>
         <ellipse cx="100" cy="62" rx="88" ry="34" fill="url(#glow)"/>
-        <path d="M22 70 Q22 26 100 22 Q178 26 178 70 Z" fill="url(#wood)" stroke="#3a1606" stroke-width="5" stroke-linejoin="round"/>
-        <path d="M22 70 Q22 26 100 22 Q178 26 178 70" fill="none" stroke="url(#trim)" stroke-width="10"/>
+        <polygon class="beam" points="62,70 138,70 190,-90 10,-90" fill="url(#beamg)"/>
         <rect x="18" y="68" width="164" height="78" rx="6" fill="url(#wood)" stroke="#3a1606" stroke-width="5"/>
         <rect x="18" y="68" width="164" height="14" fill="url(#trim)" stroke="#3a1606" stroke-width="4"/>
         <rect x="34" y="68" width="16" height="78" fill="url(#trim)" stroke="#3a1606" stroke-width="4"/>
         <rect x="150" y="68" width="16" height="78" fill="url(#trim)" stroke="#3a1606" stroke-width="4"/>
+        <g class="lid">
+          <path d="M22 70 Q22 26 100 22 Q178 26 178 70 Z" fill="url(#wood)" stroke="#3a1606" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M22 70 Q22 26 100 22 Q178 26 178 70" fill="none" stroke="url(#trim)" stroke-width="10"/>
+        </g>
         <rect x="84" y="62" width="32" height="40" rx="5" fill="url(#trim)" stroke="#3a1606" stroke-width="4"/>
         <circle cx="100" cy="80" r="6" fill="#3a1606"/>
         <rect x="97" y="82" width="6" height="12" rx="2" fill="#3a1606"/>
@@ -400,10 +461,16 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     <button class="vault" id="vault" type="button" disabled aria-label="Tresor geöffnet, plus fünf Kisten">
       <svg viewBox="0 0 64 64" aria-hidden="true">
         <rect x="4" y="6" width="56" height="50" rx="6" fill="#2b3348" stroke="#11151f" stroke-width="3"/>
-        <rect x="9" y="11" width="46" height="40" rx="4" fill="#7c8aa6" stroke="#11151f" stroke-width="2.5"/>
-        <circle cx="32" cy="31" r="13" fill="#c9d3e3" stroke="#11151f" stroke-width="2.5"/>
-        <circle cx="32" cy="31" r="4" fill="#ffb11a" stroke="#11151f" stroke-width="2"/>
-        <path d="M32 18v6M32 38v6M19 31h6M39 31h6M22.8 21.8l4.2 4.2M37 36l4.2 4.2M22.8 40.2 27 36M37 26l4.2-4.2" stroke="#11151f" stroke-width="2.5" stroke-linecap="round"/>
+        <rect x="9" y="11" width="46" height="40" rx="2" fill="#0b0f18"/>
+        <rect x="11" y="13" width="42" height="36" rx="2" fill="#ffd23a" opacity=".85"/>
+        <g class="door">
+          <rect x="9" y="11" width="46" height="40" rx="4" fill="#7c8aa6" stroke="#11151f" stroke-width="2.5"/>
+          <g class="dial">
+            <circle cx="32" cy="31" r="13" fill="#c9d3e3" stroke="#11151f" stroke-width="2.5"/>
+            <path d="M32 18v6M32 38v6M19 31h6M39 31h6M22.8 21.8l4.2 4.2M37 36l4.2 4.2M22.8 40.2 27 36M37 26l4.2-4.2" stroke="#11151f" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="32" cy="31" r="4" fill="#ffb11a" stroke="#11151f" stroke-width="2"/>
+          </g>
+        </g>
         <rect x="12" y="56" width="10" height="5" rx="1.5" fill="#11151f"/><rect x="42" y="56" width="10" height="5" rx="1.5" fill="#11151f"/>
       </svg>
       <span class="vt">Tresor <b>+5</b><span class="vs">Ein Tresor zählt als 5 Kisten</span></span>
@@ -494,6 +561,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
 
   <p class="foot">Der Stand wird online gespeichert. Mit demselben Code geht's am nächsten Tag einfach weiter.<br>Inoffizielles Fan-Tool, nicht von Epic Games.</p>
 </main>
+<canvas id="fx" aria-hidden="true"></canvas>
 <div class="flash" id="flash" aria-hidden="true"></div>
 <div class="toast" id="toast" hidden></div>
 <button class="update" id="updateBtn" type="button" hidden>Neue Version da – hier tippen zum Aktualisieren</button>
@@ -504,7 +572,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
   var SB_URL = "https://kprnmubuvsqzhsuwwkon.supabase.co";
   var SB_KEY = "sb_publishable_gHjfRR4dzXC3Rj_zcjWByg_GI_jrfzP";
 
-  var P = 1 / 137500, LN1P = Math.log1p(-P);
+  var P = 1 / 137500, LN1P = Math.log1p(-P), FX = null, FX_SRC = null;
   // Quoten: normal 1 zu 137.500; Schatzstunde 1,5× (≈ 1 zu 91.667); manche Schatzstunden 2× (≈ 1 zu 68.750)
   var MODES = {
     normal: { col: "count",   p: 1 / 137500,   odds: "1 zu 137.500", label: "aus" },
@@ -598,14 +666,15 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     try {
       var codes = list.map(function (x) { return x.code; });
       var lobs = chk(await sb.from("lobbies").select("code,epoch,deleted").in("code", codes));
-      var pls = chk(await sb.from("players").select("lobby,name,count,count15,count2,epoch").in("lobby", codes));
+      var pls = chk(await sb.from("players").select("lobby,name,count,count15,count2,epoch,updated_at").in("lobby", codes));
       if (gen !== listGen) return;
       var info = {};
-      lobs.forEach(function (l) { info[l.code] = { epoch: epochOf(l), deleted: !!l.deleted, total: 0, names: {} }; });
+      lobs.forEach(function (l) { info[l.code] = { epoch: epochOf(l), deleted: !!l.deleted, total: 0, names: {}, recent: false }; });
       pls.forEach(function (r) {
         var i = info[r.lobby]; if (!i || epochOf(r) !== i.epoch) return;
         var n = tot(fromRow(r)); i.total += n;
-        if (n > 0) i.names[(cleanName(r.name) || "?").toLowerCase()] = 1;
+        if (n > 0) i.names[(cleanName(r.name) || "?").toLowerCase()] = cleanName(r.name) || "?";
+        if (r.updated_at && Date.now() - new Date(r.updated_at) < 10 * 60000) i.recent = true;
       });
       codes.forEach(function (code) {
         var i = info[code], cell = cells[code];
@@ -613,7 +682,15 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
         var np = Object.keys(i.names).length;
         cell.total.textContent = fmt.format(i.total);
         var sm = document.createElement("small"); sm.textContent = "Kisten"; cell.total.appendChild(sm);
-        cell.meta.textContent = np + (np === 1 ? " Spieler" : " Spieler") + " · zuletzt " + whenTxt(cell.at);
+        cell.meta.textContent = (i.recent ? "gerade aktiv · " : "") + np + " Spieler · zuletzt " + whenTxt(cell.at);
+        if (i.recent) { var dot = document.createElement("i"); dot.className = "lob-live"; cell.meta.prepend(dot); }
+        var avs = document.createElement("span"); avs.className = "avs";
+        Object.keys(i.names).slice(0, 6).forEach(function (key) {
+          var nm = i.names[key], h = 0; for (var c = 0; c < key.length; c++) h = (h * 31 + key.charCodeAt(c)) % 360;
+          var a = document.createElement("span"); a.className = "av"; a.style.background = "hsl(" + h + " 70% 45%)"; a.textContent = nm.charAt(0).toUpperCase(); a.title = nm;
+          avs.appendChild(a);
+        });
+        cell.meta.parentNode.appendChild(avs);
       });
       if (!myList().length) $("myLobbies").hidden = true;
     } catch (e) { /* Liste bleibt ohne Zahlen */ }
@@ -1203,7 +1280,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
   function letSleep() { if (wake) { try { wake.release(); } catch (e) {} wake = null; } $("wakeTxt").hidden = true; }
 
   function closeLobby() {
-    letSleep();
+    letSleep(); if (FX) FX.setGold(false);
     stopListening(); S.gen++;
     S.code = null; S.ready = false; S.docs = {};
     lsSet("tkz-lobby", null); hideConfirm();
@@ -1241,13 +1318,15 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     }
     render(); schedule();
     if (k > 0) {
-      var f = $("flash"); f.classList.remove("go"); f.classList.toggle("big", k > 1); void f.offsetWidth; f.classList.add("go");
+      var f = $("flash"); f.classList.remove("go"); f.classList.toggle("big", k > 1); f.classList.toggle("lite", Date.now() - (S.lastTapAt || 0) < 900); S.lastTapAt = Date.now(); void f.offsetWidth; f.classList.add("go");
       var t = $("tap"); t.classList.remove("hit"); void t.offsetWidth; t.classList.add("hit");
       var r = t.getBoundingClientRect(), p = document.createElement("span");
       p.className = "pop"; p.textContent = "+" + k;
       var x = ev && ev.clientX ? ev.clientX - r.left : r.width / 2, y = ev && ev.clientY ? ev.clientY - r.top : r.height * .4;
       p.style.left = x + "px"; p.style.top = y + "px";
       t.appendChild(p); setTimeout(function () { p.remove(); }, 750);
+      try { FX.count(k, FX_SRC); } catch (e) {}
+      FX_SRC = null;
     }
   }
 
@@ -1275,6 +1354,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     var mode = MODES[S.tmode] ? S.tmode : "normal", M = MODES[mode], boosted = mode !== "normal";
     $("tap").classList.toggle("boost", boosted);
     $("boostBadge").hidden = !boosted; $("boostBadge").textContent = "Schatzstunde " + M.label;
+    if (FX) FX.setGold(boosted && S.ready, S.tmodeAt, M.label);
     Array.prototype.forEach.call(document.querySelectorAll(".seg-b"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === mode)); });
     var since = S.tmodeAt ? new Date(S.tmodeAt) : null;
     $("thState").textContent = boosted ? M.label + " an" + (since && !isNaN(since) ? " seit " + since.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr" : "") : "aus";
@@ -1345,10 +1425,9 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     add(1); keepAwake();
   });
   document.addEventListener("keyup", function (e) { if (spaceCounts(e)) e.preventDefault(); });
-  $("plus10").addEventListener("click", function () { add(10); });
+  $("plus10").addEventListener("click", function () { FX_SRC = "big"; add(10); });
   $("vault").addEventListener("click", function () {
-    add(5); keepAwake();
-    var v = $("vault"); v.classList.remove("hit"); void v.offsetWidth; v.classList.add("hit");
+    FX_SRC = "vault"; add(5); keepAwake();
   });
   $("minus").addEventListener("click", function () { add(-1); });
 
@@ -1413,7 +1492,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121223245", newV = null;
+  var VERSION = "20261121231657", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
@@ -1429,6 +1508,213 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
   checkVersion();
   setInterval(function () { if (!document.hidden) checkVersion(); }, 60000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) checkVersion(); });
+
+  /* ---------- Welle 1: Himmel, Funken, Combo, Sound ---------- */
+  var FX = (function () {
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var sky = $("sky"), fxc = $("fx"), sc = sky.getContext("2d"), fc = fxc.getContext("2d");
+    var W = 0, H = 0, DPR = 1, clouds = [], stars = [], motes = [], dust = [], parts = [];
+    var gold = false, goldSince = null, goldLabel = "", reminded = null, last = 0, running = false;
+
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+    function resize() {
+      DPR = Math.min(1.5, window.devicePixelRatio || 1); W = window.innerWidth; H = window.innerHeight;
+      [sky, fxc].forEach(function (c) { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); c.style.width = W + "px"; c.style.height = H + "px"; });
+      sc.setTransform(DPR, 0, 0, DPR, 0, 0); fc.setTransform(DPR, 0, 0, DPR, 0, 0);
+      if (!clouds.length) {
+        for (var i = 0; i < 7; i++) clouds.push({ x: rnd(-200, W), y: rnd(20, H * .55), s: rnd(.6, 1.4), v: rnd(4, 14) });
+        for (var j = 0; j < 90; j++) stars.push({ x: Math.random(), y: Math.random() * .7, r: rnd(.4, 1.6), p: rnd(0, 6.3) });
+        for (var k = 0; k < 26; k++) motes.push({ x: rnd(0, W), y: rnd(0, H), r: rnd(1, 2.6), v: rnd(6, 20), p: rnd(0, 6.3) });
+      }
+      drawSky(performance.now());
+    }
+    // Tageszeit-Farben: Tag, Abend/Morgen, Nacht
+    function palette() {
+      var d = new Date(), h = d.getHours() + d.getMinutes() / 60;
+      if (h >= 7.5 && h < 17) return { a: "#2a7cf5", b: "#4b25a8", c: "#140b44", stars: 0, ray: .05 };
+      if ((h >= 17 && h < 20.5) || (h >= 5.5 && h < 7.5)) return { a: "#ff7d5a", b: "#8a2fa8", c: "#170b44", stars: .35, ray: .06 };
+      return { a: "#11235e", b: "#241166", c: "#07051c", stars: 1, ray: .035 };
+    }
+    function cloud(x, y, s, alpha) {
+      sc.save(); sc.globalAlpha = alpha; sc.fillStyle = gold ? "#ffe9a8" : "#ffffff";
+      [[0, 0, 46], [40, -14, 38], [78, 0, 44], [36, 12, 40], [-30, 8, 30]].forEach(function (c) {
+        sc.beginPath(); sc.arc(x + c[0] * s, y + c[1] * s, c[2] * s, 0, 6.283); sc.fill();
+      });
+      sc.restore();
+    }
+    function drawSky(t) {
+      var p = palette();
+      var g = sc.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, gold ? "#ffb54a" : p.a); g.addColorStop(.45, gold ? "#a8389e" : p.b); g.addColorStop(1, p.c);
+      sc.fillStyle = g; sc.fillRect(0, 0, W, H);
+      if (p.stars && !gold) {
+        stars.forEach(function (s) { sc.globalAlpha = p.stars * (.45 + .55 * Math.sin(t / 900 + s.p)); sc.fillStyle = "#fff"; sc.beginPath(); sc.arc(s.x * W, s.y * H, s.r, 0, 6.283); sc.fill(); });
+        sc.globalAlpha = 1;
+      }
+      // Lichtstrahlen von oben
+      var cx = W / 2, cy = -H * .18, rot = reduce ? 0 : t * .00004;
+      sc.save(); sc.translate(cx, cy); sc.rotate(rot);
+      sc.fillStyle = gold ? "rgba(255,215,90,.11)" : "rgba(255,255,255," + p.ray + ")";
+      for (var i = 0; i < 9; i++) { sc.rotate(6.283 / 9); sc.beginPath(); sc.moveTo(0, 0); sc.lineTo(-90, H * 1.6); sc.lineTo(90, H * 1.6); sc.closePath(); sc.fill(); }
+      sc.restore();
+      // Wolken
+      clouds.forEach(function (c) { var x = ((c.x + (reduce ? 0 : t / 1000 * c.v)) % (W + 400)) - 200; cloud(x, c.y, c.s, .07 + (p.stars ? 0 : .05)); });
+      // schwebende Funken
+      sc.fillStyle = gold ? "#ffd54a" : "#bfe9ff";
+      motes.forEach(function (m) {
+        var y = (m.y - (reduce ? 0 : t / 1000 * m.v)) % H; if (y < 0) y += H;
+        sc.globalAlpha = .25 + .35 * Math.sin(t / 700 + m.p); sc.beginPath(); sc.arc(m.x + Math.sin(t / 1500 + m.p) * 12, y, m.r, 0, 6.283); sc.fill();
+      });
+      sc.globalAlpha = 1;
+      // Goldstaub während der Schatzstunde
+      if (gold) {
+        if (dust.length < 70) dust.push({ x: rnd(0, W), y: -10, v: rnd(30, 70), s: rnd(2, 4.5), r: rnd(0, 6.3), vr: rnd(-3, 3) });
+        dust.forEach(function (d) { d.y += d.v / 30; d.r += d.vr / 30; });
+        dust = dust.filter(function (d) { return d.y < H + 10; });
+        dust.forEach(function (d) { sc.save(); sc.translate(d.x, d.y); sc.rotate(d.r); sc.fillStyle = "rgba(255,214,74,.85)"; sc.fillRect(-d.s / 2, -d.s / 2, d.s, d.s * .6); sc.restore(); });
+      }
+    }
+
+    // Funken und Münzen
+    var COLORS = { normal: ["#ffd23a", "#ffb11a", "#fff27a"], rare: ["#c64bff", "#e6a3ff", "#8f3bff"], legend: ["#ffd23a", "#fff6c0", "#ff9d00"], vault: ["#7fe9ff", "#d8f8ff", "#3fb7ff"] };
+    function burst(x, y, kind, n) {
+      var cols = COLORS[kind] || COLORS.normal;
+      for (var i = 0; i < n && parts.length < 450; i++) {
+        var a = rnd(-Math.PI * .95, -Math.PI * .05), sp = rnd(4, kind === "legend" ? 15 : 11);
+        var coin = kind !== "vault" ? Math.random() < .45 : Math.random() < .2;
+        parts.push({ x: x + rnd(-14, 14), y: y + rnd(-8, 8), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: .32, life: 0, max: rnd(38, 70),
+          s: coin ? rnd(6, 10) : rnd(2, 4), coin: coin, star: kind === "legend" && Math.random() < .25, c: cols[i % cols.length], r: rnd(0, 6.3), vr: rnd(-.3, .3) });
+      }
+      kick();
+    }
+    function drawParts() {
+      fc.clearRect(0, 0, W, H);
+      parts.forEach(function (p) {
+        p.life++; p.x += p.vx; p.y += p.vy; p.vy += p.g; p.vx *= .985; p.r += p.vr;
+        var a = 1 - p.life / p.max; if (a <= 0) return;
+        fc.globalAlpha = Math.min(1, a * 1.6);
+        if (p.coin) {
+          fc.save(); fc.translate(p.x, p.y); fc.scale(Math.max(.15, Math.abs(Math.cos(p.r * 3))), 1);
+          fc.fillStyle = p.c; fc.beginPath(); fc.arc(0, 0, p.s, 0, 6.283); fc.fill();
+          fc.strokeStyle = "rgba(120,60,0,.6)"; fc.lineWidth = 1.5; fc.stroke(); fc.restore();
+        } else if (p.star) {
+          fc.save(); fc.translate(p.x, p.y); fc.rotate(p.r); fc.fillStyle = "#fffbe0"; fc.beginPath();
+          for (var i = 0; i < 5; i++) { fc.lineTo(0, -9); fc.translate(0, -9); fc.rotate(.63); fc.lineTo(0, 9); fc.translate(0, 9); fc.rotate(-1.89); }
+          fc.fill(); fc.restore();
+        } else {
+          fc.strokeStyle = p.c; fc.lineWidth = p.s; fc.lineCap = "round"; fc.beginPath(); fc.moveTo(p.x, p.y); fc.lineTo(p.x - p.vx * 2, p.y - p.vy * 2); fc.stroke();
+        }
+      });
+      fc.globalAlpha = 1;
+      parts = parts.filter(function (p) { return p.life < p.max; });
+    }
+    function loop(t) {
+      if (document.hidden) { running = false; return; }
+      if (t - last > 32) { last = t; if (!reduce || gold) drawSky(t); }
+      if (parts.length) drawParts(); else fc.clearRect(0, 0, W, H);
+      if (!reduce || parts.length || gold) requestAnimationFrame(loop); else running = false;
+    }
+    function kick() { if (!running) { running = true; requestAnimationFrame(loop); } }
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) kick(); });
+
+    // Sound – selbst erzeugt
+    var ac = null, soundOn = lsGet("tkz-sound") === "1";
+    function audio() { if (!soundOn) return null; try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); } catch (e) { return null; } return ac; }
+    function tone(f1, f2, dur, type, vol, delay) {
+      var a = audio(); if (!a) return;
+      var t0 = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
+      o.type = type || "sine"; o.frequency.setValueAtTime(f1, t0); o.frequency.exponentialRampToValueAtTime(Math.max(30, f2), t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol || .2, t0 + .01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + dur + .02);
+    }
+    function noise(dur, vol, delay, hp) {
+      var a = audio(); if (!a) return;
+      var t0 = a.currentTime + (delay || 0), len = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      var s = a.createBufferSource(), g = a.createGain(), f = a.createBiquadFilter(); f.type = "highpass"; f.frequency.value = hp || 800;
+      s.buffer = buf; g.gain.value = vol || .15; s.connect(f); f.connect(g); g.connect(a.destination); s.start(t0);
+    }
+    var SND = {
+      pop: function () { noise(.06, .18, 0, 1500); tone(420, 180, .12, "triangle", .22); tone(1568, 1568, .08, "sine", .08, .05); },
+      rare: function () { [784, 988, 1175, 1568].forEach(function (f, i) { tone(f, f, .18, "sine", .12, i * .06); }); },
+      legend: function () { [523, 659, 784, 1047, 1319, 1568].forEach(function (f, i) { tone(f, f * 1.01, .3, "triangle", .14, i * .07); }); },
+      vault: function () { tone(180, 120, .06, "square", .12); tone(180, 120, .06, "square", .12, .12); noise(.25, .2, .25, 300); tone(90, 50, .35, "sine", .3, .25); [1319, 1568, 1976].forEach(function (f, i) { tone(f, f, .15, "sine", .08, .4 + i * .05); }); },
+      combo: function (n) { var f = 440 * Math.pow(2, Math.min(n, 60) / 24); tone(f, f * 1.5, .12, "square", .06); }
+    };
+
+    // Combo
+    var combo = 0, lastTap = 0, comboT = null, best = parseInt(lsGet("tkz-bestcombo") || "0", 10) || 0;
+    function tierOf(n) { return n >= 50 ? 4 : n >= 25 ? 3 : n >= 10 ? 2 : n >= 5 ? 1 : 0; }
+    function comboHit() {
+      var now = Date.now();
+      combo = now - lastTap < 900 ? combo + 1 : 1; lastTap = now;
+      var el = $("combo"), tier = tierOf(combo);
+      if (tier) {
+        el.hidden = false; el.dataset.tier = tier; el.textContent = "COMBO ×" + combo;
+        el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+        if (combo === 5 || combo === 10 || combo === 25 || combo === 50 || combo % 25 === 0) SND.combo(combo);
+      }
+      $("tap").classList.toggle("fire", combo >= 25);
+      if (combo > best) { best = combo; lsSet("tkz-bestcombo", String(best)); }
+      clearTimeout(comboT);
+      comboT = setTimeout(function () { combo = 0; el.hidden = true; $("tap").classList.remove("fire"); }, 1300);
+    }
+
+    function flashClass(el, cls, ms) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); setTimeout(function () { el.classList.remove(cls); }, ms); }
+    function center(el) { var r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+
+    function count(k, src) {
+      var tap = $("tap"), chest = tap.querySelector(".chest");
+      if (src === "vault") {
+        var c = center($("vault"));
+        burst(c.x, c.y - 10, "vault", reduce ? 12 : 46); SND.vault();
+        flashClass($("vault"), "crack", 1000);
+        return;
+      }
+      comboHit();
+      var kind = "normal", r = Math.random();
+      if (k === 1 && r < 1 / 60) kind = "legend"; else if (k === 1 && r < 1 / 12) kind = "rare";
+      if (src === "big") kind = "rare";
+      flashClass(tap, "open", 600);
+      if (kind !== "normal") {
+        tap.classList.remove("rare", "legend"); tap.classList.add(kind);
+        setTimeout(function () { tap.classList.remove(kind); }, 900);
+        var lbl = $("rareLbl"); lbl.textContent = kind === "legend" ? "LEGENDÄR!" : src === "big" ? "+10!" : "SELTEN!";
+        lbl.dataset.kind = kind; lbl.hidden = false; flashClass(lbl, "go", 950);
+      }
+      var c2 = center(chest);
+      burst(c2.x, c2.y - 20, kind, reduce ? 6 : kind === "legend" ? 80 : kind === "rare" ? 38 : 18);
+      (SND[kind] || SND.pop)(); if (kind !== "normal") SND.pop();
+    }
+
+    function setSound(on) {
+      soundOn = on; lsSet("tkz-sound", on ? "1" : "0");
+      var b = $("soundBtn"); b.querySelector("span").textContent = on ? "🔊" : "🔇";
+      b.setAttribute("aria-pressed", String(on)); b.setAttribute("aria-label", on ? "Ton aus" : "Ton an");
+      if (on) SND.pop();
+    }
+    $("soundBtn").addEventListener("click", function () { setSound(!soundOn); toast(soundOn ? "Ton an" : "Ton aus"); });
+    setSound(soundOn);
+
+    function setGold(on, since, label) {
+      var was = gold; gold = !!on; goldSince = since || null; goldLabel = label || "";
+      document.body.classList.toggle("gold", gold);
+      var bar = $("goldBar"); bar.hidden = !gold;
+      if (gold) {
+        var mins = goldSince ? Math.max(0, Math.round((Date.now() - new Date(goldSince)) / 60000)) : null;
+        bar.querySelector("b").textContent = "SCHATZSTUNDE " + goldLabel;
+        bar.querySelector("span").textContent = goldSince ? "läuft seit " + new Date(goldSince).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr · " + mins + " Min" : "läuft";
+        if (mins !== null && mins >= 60 && reminded !== goldSince) { reminded = goldSince; toast("Die Schatzstunde läuft schon " + mins + " Min – noch an? Sonst oben auf „Aus“."); }
+      }
+      if (gold !== was) { dust = []; kick(); if (gold && !reduce) { burst(W / 2, H * .35, "legend", 60); SND.legend(); } }
+    }
+
+    resize(); kick();
+    return { count: count, setGold: setGold, best: function () { return best; } };
+  })();
+  setInterval(function () { if (document.body.classList.contains("gold") && S.ready) render(); }, 30000);
+
 
   /* ---------- Start ---------- */
   showChoice();
