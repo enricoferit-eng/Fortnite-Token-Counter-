@@ -272,7 +272,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       </svg>
       <span class="total" id="total">0</span>
       <span class="cap">Kisten im Team</span>
-      <span class="mine" id="mine">Tippen = +1 Kiste für dich</span>
+      <span class="mine" id="mine">Tippen oder Leertaste = +1 Kiste</span>
     </button>
 
     <div class="fix">
@@ -659,7 +659,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     var list = players(), total = 0, meTotal = 0;
     list.forEach(function (p) { total += p.count; if (p.me) meTotal = p.count; });
     $("total").textContent = fmt.format(total);
-    $("mine").textContent = S.ready ? "Du: " + fmt.format(meTotal) + " · Tippen = +1 Kiste" : "Lade Lobby …";
+    $("mine").textContent = S.ready ? "Du: " + fmt.format(meTotal) + " · Tippen oder Leertaste = +1" : "Lade Lobby …";
     var cum = -Math.expm1(total * LN1P);
     $("cum").textContent = pct(cum);
     $("fill").style.width = (cum * 100).toFixed(3) + "%";
@@ -705,6 +705,20 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 
   /* ---------- Knöpfe ---------- */
   $("tap").addEventListener("click", function (e) { add(1, e); keepAwake(); });
+  // Leertaste auf der Tastatur (z. B. iPad mit Tastatur) = +1 Kiste
+  function spaceCounts(e) {
+    if (e.code !== "Space" && e.key !== " ") return false;
+    var t = e.target, tag = t && t.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return false;
+    return !$("lobby").hidden && S.ready && !$("tap").disabled;
+  }
+  document.addEventListener("keydown", function (e) {
+    if (!spaceCounts(e)) return;
+    e.preventDefault();               // kein Scrollen, kein anderer Knopf
+    if (e.repeat) return;             // gedrückt halten zählt nur einmal
+    add(1); keepAwake();
+  });
+  document.addEventListener("keyup", function (e) { if (spaceCounts(e)) e.preventDefault(); });
   $("plus10").addEventListener("click", function () { add(10); });
   $("minus").addEventListener("click", function () { add(-1); });
 
