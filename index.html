@@ -197,6 +197,18 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 .rwrap { overflow-x: auto; }
 .report .row .btn { flex: 0 0 auto; }
 
+.rd-more { font-size: .9rem; }
+.rd-more summary { cursor: pointer; color: var(--rare); font-weight: 700; padding: 4px 0; }
+.rd-form { display: grid; gap: 8px; margin-top: 8px; }
+.rd-two { grid-template-columns: 1fr 1fr; }
+.rd-two .btn { grid-column: 1 / -1; }
+input[type=time] { width: 100%; min-width: 0; font: 700 1.1rem var(--body); color: var(--fg); background: var(--night); border: 3px solid var(--edge); border-radius: 4px; padding: 9px 10px; }
+input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
+.pz { display: flex; flex-direction: column; gap: 6px; }
+.pz-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pz-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--night); border-radius: 4px; padding: 6px 6px 6px 10px; font-size: .88rem; font-variant-numeric: tabular-nums; }
+.pz-list .lob-x { flex: 0 0 36px; height: 32px; }
+
 /* Bildschirm-Blitz bei jedem Zählen: hell genug, um ihn aus dem Augenwinkel zu sehen */
 .flash { position: fixed; inset: 0; pointer-events: none; z-index: 25; opacity: 0;
   --fc: rgba(255, 20, 50, 1); background: rgba(255, 25, 55, .5);
@@ -228,7 +240,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 .th-head h2 { margin: 0; }
 .th-state { font-size: .8rem; font-weight: 700; color: var(--muted); }
 .th-state.on { color: var(--legend); }
-.seg { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
 .seg-b { appearance: none; cursor: pointer; border: 2px solid var(--edge); background: var(--night); color: var(--fg); border-radius: 4px; padding: 11px 6px;
   font: 400 1.15rem var(--display); letter-spacing: .04em; text-transform: uppercase; }
 .seg-b:hover { border-color: var(--rare); }
@@ -339,6 +351,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       <div class="seg" role="group" aria-label="Schatzstunde einstellen">
         <button class="seg-b" type="button" data-mode="normal" aria-pressed="true">Aus<small>1 zu 137.500</small></button>
         <button class="seg-b" type="button" data-mode="x15" aria-pressed="false">1,5×<small>1 zu 91.667</small></button>
+        <button class="seg-b" type="button" data-mode="x2" aria-pressed="false">2×<small>1 zu 68.750</small></button>
       </div>
       <p class="th-note">Gilt für alle in der Lobby. Jede Kiste zählt mit der Chance, die beim Öffnen galt. Nach der Schatzstunde wieder auf „Aus“ stellen.</p>
     </section>
@@ -385,25 +398,49 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     </div>
 
     <section class="slab" id="roundBox">
-      <h2>Runde</h2>
+      <h2>Session</h2>
       <div class="rd-live" id="rdIdle">
-        <p class="rd-sub" style="margin:0">Starte eine Runde, wenn ihr loslegt. Am Ende bekommt ihr eine Auswertung: wer wie viele Kisten hatte, insgesamt und pro Stunde.</p>
-        <button class="btn" id="rdStart" type="button" disabled><span>Runde starten</span></button>
+        <p class="rd-sub" style="margin:0">Starte eine Session, wenn ihr loslegt. Am Ende gibt's eine Auswertung: wer wie viele Kisten hatte, Spielzeit ohne Pausen und Kisten pro Stunde. Unten seht ihr, wie viel ihr an welchem Tag gespielt habt.</p>
+        <button class="btn" id="rdStart" type="button" disabled><span>Session starten</span></button>
+        <details class="rd-more">
+          <summary>Schon früher angefangen?</summary>
+          <div class="rd-form">
+            <label class="lbl" for="rdStartAt">Startzeit</label>
+            <input type="time" id="rdStartAt">
+            <button class="btn small blue" id="rdStartPast" type="button" disabled><span>Mit dieser Startzeit starten</span></button>
+          </div>
+        </details>
       </div>
       <div class="rd-live" id="rdActive" hidden>
-        <div class="rd-run"><span class="rd-dot"></span><strong id="rdSince">Runde läuft</strong></div>
-        <div><span class="rd-big" id="rdCount">0</span> <span class="rd-sub">Kisten in dieser Runde</span></div>
+        <div class="rd-run"><span class="rd-dot"></span><strong id="rdSince">Session läuft</strong></div>
+        <div><span class="rd-big" id="rdCount">0</span> <span class="rd-sub">Kisten in dieser Session</span></div>
         <div class="rd-sub" id="rdInfo"></div>
-        <button class="btn danger" id="rdEnd" type="button" disabled><span>Runde beenden</span></button>
+        <div class="rd-pausebar">
+          <button class="btn small ghost" id="rdPause" type="button" disabled><span>Kreativ-Pause starten</span></button>
+        </div>
+        <div id="rdActivePauses"></div>
+        <details class="rd-more">
+          <summary>Startzeit ändern</summary>
+          <div class="rd-form">
+            <label class="lbl" for="rdEditStart">Neue Startzeit</label>
+            <input type="time" id="rdEditStart">
+            <button class="btn small blue" id="rdEditStartBtn" type="button"><span>Startzeit speichern</span></button>
+          </div>
+        </details>
+        <button class="btn danger" id="rdEnd" type="button" disabled><span>Session beenden</span></button>
       </div>
       <div class="confirm" id="rdConfirm" hidden>
-        <strong>Runde für alle beenden und auswerten?</strong>
+        <strong>Session für alle beenden und auswerten?</strong>
         <div class="row">
           <button class="btn small ghost" id="rdNo" type="button"><span>Weiterspielen</span></button>
           <button class="btn small danger" id="rdYes" type="button"><span>Ja, beenden</span></button>
         </div>
       </div>
       <ul class="rd-list" id="rdList"></ul>
+      <div id="dayBox" hidden>
+        <h2 style="margin-top:18px">Tage</h2>
+        <ul class="rd-list" id="dayList"></ul>
+      </div>
     </section>
 
     <section class="slab">
@@ -653,7 +690,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 
   /* ---------- Lobby ---------- */
   function setStatus(kind, txt) { $("dot").className = "dot" + (kind ? " " + kind : ""); $("statusTxt").textContent = txt; }
-  function enable(on) { ["tap", "vault", "minus", "plus10", "rdStart", "rdEnd", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
+  function enable(on) { ["tap", "vault", "minus", "plus10", "rdStart", "rdStartPast", "rdPause", "rdEnd", "resetMeBtn", "resetAllBtn", "deleteBtn"].forEach(function (id) { $(id).disabled = !on; }); }
 
   function stopListening() {
     if (S.chan) { try { sb.removeChannel(S.chan); } catch (e) {} S.chan = null; }
@@ -694,7 +731,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     var own = chk(await sb.from("players").select("count,count15,count2,epoch").eq("lobby", code).eq("device", devId));
 
     var gen = ++S.gen;
-    S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false; S.rounds = []; S.openRound = null;
+    S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false; S.rounds = []; S.openRound = null; S.openDay = null;
     S.mine = zero(); S.written = own.length ? null : zero();
     if (own.length && epochOf(own[0]) === epoch) { S.mine = fromRow(own[0]); S.written = fromRow(own[0]); }
     S.tmode = MODES[lob[0].mode] ? lob[0].mode : "normal"; S.tmodeAt = lob[0].mode_at || null;
@@ -722,8 +759,8 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
         var was = activeRound();
         loadRounds(gen).then(function () {
           var now = activeRound();
-          if (!was && now && now.started_by !== S.name) toast(now.started_by + " hat eine Runde gestartet");
-          if (was && !now) { var r = (S.rounds || []).filter(function (x) { return x.id === was.id; })[0]; if (r && r.ended_by !== S.name) { S.openRound = r.id; renderRounds(); toast((r.ended_by || "Jemand") + " hat die Runde beendet – Auswertung ist da"); } }
+          if (!was && now && now.started_by !== S.name) toast(now.started_by + " hat eine Session gestartet");
+          if (was && !now) { var r = (S.rounds || []).filter(function (x) { return x.id === was.id; })[0]; if (r && r.ended_by !== S.name) { S.openRound = r.id; renderRounds(); toast((r.ended_by || "Jemand") + " hat die Session beendet – Auswertung ist da"); } }
         }).catch(function () {});
       })
       .subscribe(function (status) {
@@ -741,9 +778,9 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     return null;
   }
 
-  /* ---------- Runden ---------- */
-  // Eine Runde merkt sich beim Start und beim Ende die Zählerstände jedes Geräts.
-  // Die Auswertung ist der Unterschied dazwischen.
+  /* ---------- Sessions ---------- */
+  // Eine Session merkt sich beim Start und beim Ende die Zählerstände jedes Geräts.
+  // Die Auswertung ist der Unterschied dazwischen. Kreativ-Pausen liegen als "_pauses" mit im Start-Stand.
   function snapshot() {
     var snap = {};
     Object.keys(S.docs).forEach(function (id) {
@@ -757,6 +794,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     start = start || {}; end = end || {};
     var by = {}, team = zero();
     Object.keys(end).forEach(function (id) {
+      if (id.charAt(0) === "_") return;
       var e = end[id] || {}, s = start[id], base = s && epochOf(s) === epochOf(e) ? fromRow(s) : zero(), cur = fromRow(e), d = zero();
       COLS.forEach(function (c) { d[c] = Math.max(0, cur[c] - base[c]); });
       if (!tot(d)) return;
@@ -768,18 +806,98 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       .sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name, "de"); });
     return { people: people, team: team, total: tot(team) };
   }
+  function resultOf(r) { return roundResult(r.start_counts, r.ended_at ? r.end_counts : snapshot()); }
+  function pausesOf(r) { var p = r && r.start_counts && r.start_counts._pauses; return Array.isArray(p) ? p : []; }
+  function endMs(r) { return r.ended_at ? new Date(r.ended_at).getTime() : Date.now(); }
+  function pauseMs(r) {
+    var a = new Date(r.started_at).getTime(), b = endMs(r);
+    var iv = pausesOf(r).map(function (p) { return [Math.max(a, new Date(p.from).getTime()), Math.min(b, p.to ? new Date(p.to).getTime() : Date.now())]; })
+      .filter(function (x) { return x[1] > x[0]; }).sort(function (x, y) { return x[0] - y[0]; });
+    var sum = 0, cs = null, ce = null;
+    iv.forEach(function (x) { if (cs === null || x[0] > ce) { if (cs !== null) sum += ce - cs; cs = x[0]; ce = x[1]; } else ce = Math.max(ce, x[1]); });
+    if (cs !== null) sum += ce - cs;
+    return sum;
+  }
+  function playMs(r) { return Math.max(0, endMs(r) - new Date(r.started_at).getTime() - pauseMs(r)); }
+  function runningPause(r) { return pausesOf(r).filter(function (p) { return !p.to; })[0] || null; }
   function hm(t) { return new Date(t).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); }
   function dayTxt(t) { return new Date(t).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "numeric" }); }
+  function dayKey(t) { var d = new Date(t); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
   function durTxt(ms) {
     var m = Math.max(0, Math.round(ms / 60000)), h = Math.floor(m / 60);
     return h ? h + " Std " + (m % 60) + " Min" : m + " Min";
   }
+  function perHour(n, ms) { return ms >= 60000 ? fmt.format(Math.round(n / (ms / 36e5))) : "–"; }
+  // "HH:MM" am Tag von base; nach vorn/hinten schieben, damit es zur Session passt
+  function timeAt(base, hhmm) {
+    var m = /^(\d{1,2}):(\d{2})/.exec(hhmm || ""); if (!m) return null;
+    var d = new Date(base); d.setHours(+m[1], +m[2], 0, 0); return d;
+  }
+  function hhmmOf(t) { var d = new Date(t); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); }
   function activeRound() { return (S.rounds || []).filter(function (r) { return !r.ended_at; })[0] || null; }
+  // Kürzere Sessions, die ganz in einer anderen liegen, zählen in der Tagesübersicht nicht doppelt
+  function isNested(r) {
+    var a = new Date(r.started_at).getTime(), b = endMs(r);
+    return (S.rounds || []).some(function (o) {
+      if (o.id === r.id) return false;
+      var oa = new Date(o.started_at).getTime(), ob = endMs(o);
+      return oa <= a && ob >= b && (ob - oa > b - a || o.id < r.id);
+    });
+  }
 
   async function loadRounds(gen) {
-    var rows = chk(await sb.from("rounds").select("*").eq("lobby", S.code).order("started_at", { ascending: false }).limit(20));
+    var rows = chk(await sb.from("rounds").select("*").eq("lobby", S.code).order("started_at", { ascending: false }).limit(60));
     if (gen !== S.gen) return;
     S.rounds = rows; renderRounds();
+  }
+  async function saveRound(r, patch) {
+    chk(await sb.from("rounds").update(patch).eq("id", r.id));
+    Object.assign(r, patch); renderRounds();
+  }
+  async function setPauses(r, list) {
+    list = list.slice().sort(function (a, b) { return new Date(a.from) - new Date(b.from); });
+    await saveRound(r, { start_counts: Object.assign({}, r.start_counts, { _pauses: list }) });
+  }
+
+  function pauseEditor(r) {
+    var box = document.createElement("div"); box.className = "pz";
+    var list = pausesOf(r);
+    var title = document.createElement("div"); title.className = "lbl"; title.textContent = "Kreativ-Pausen" + (list.length ? " · zusammen " + durTxt(pauseMs(r)) : "");
+    box.appendChild(title);
+    if (list.length) {
+      var ul = document.createElement("ul"); ul.className = "pz-list";
+      list.forEach(function (p, i) {
+        var li = document.createElement("li");
+        var t = document.createElement("span");
+        t.textContent = hm(p.from) + " – " + (p.to ? hm(p.to) + " Uhr (" + durTxt(new Date(p.to) - new Date(p.from)) + ")" : "läuft noch");
+        var x = document.createElement("button"); x.type = "button"; x.className = "lob-x"; x.textContent = "×";
+        x.setAttribute("aria-label", "Pause löschen");
+        x.addEventListener("click", function () {
+          var nl = list.slice(); nl.splice(i, 1);
+          setPauses(r, nl).then(function () { toast("Pause gelöscht"); }, function () { toast("Hat nicht geklappt – bitte nochmal versuchen"); });
+        });
+        li.appendChild(t); li.appendChild(x); ul.appendChild(li);
+      });
+      box.appendChild(ul);
+    }
+    var det = document.createElement("details"); det.className = "rd-more";
+    var sum = document.createElement("summary"); sum.textContent = "Pause nachtragen"; det.appendChild(sum);
+    var form = document.createElement("div"); form.className = "rd-form rd-two";
+    var idF = "pzF-" + r.id, idT = "pzT-" + r.id;
+    form.innerHTML = '<label class="lbl" for="' + idF + '">von</label><label class="lbl" for="' + idT + '">bis</label>' +
+      '<input type="time" id="' + idF + '"><input type="time" id="' + idT + '">';
+    var add = document.createElement("button"); add.type = "button"; add.className = "btn small blue";
+    var sp = document.createElement("span"); sp.textContent = "Pause eintragen"; add.appendChild(sp);
+    add.addEventListener("click", function () {
+      var st = new Date(r.started_at), f = timeAt(st, document.getElementById(idF).value), t = timeAt(st, document.getElementById(idT).value);
+      if (!f || !t) { toast("Bitte beide Uhrzeiten eintragen"); return; }
+      if (f < st - 6e4) f.setDate(f.getDate() + 1);           // nach Mitternacht
+      while (t <= f) t.setDate(t.getDate() + 1);
+      var nl = list.concat([{ from: f.toISOString(), to: t.toISOString() }]);
+      setPauses(r, nl).then(function () { toast("Pause " + hm(f) + "–" + hm(t) + " eingetragen"); }, function () { toast("Hat nicht geklappt – bitte nochmal versuchen"); });
+    });
+    form.appendChild(add); det.appendChild(form); box.appendChild(det);
+    return box;
   }
 
   function renderRounds() {
@@ -788,55 +906,112 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     $("rdIdle").hidden = !!act; $("rdActive").hidden = !act;
     if (!act) $("rdConfirm").hidden = true;
     if (act) {
-      var res = roundResult(act.start_counts, snapshot());
-      $("rdSince").textContent = "Runde läuft seit " + hm(act.started_at) + " Uhr · " + durTxt(Date.now() - new Date(act.started_at));
+      var res = resultOf(act), rp = runningPause(act);
+      $("rdSince").textContent = (rp ? "Kreativ-Pause seit " + hm(rp.from) + " Uhr" : "Session läuft seit " + hm(act.started_at) + " Uhr") + " · Spielzeit " + durTxt(playMs(act));
       $("rdCount").textContent = fmt.format(res.total);
       var me = res.people.filter(function (p) { return p.name.toLowerCase() === S.name.toLowerCase(); })[0];
-      $("rdInfo").textContent = "Gestartet von " + (act.started_by || "?") + " · du: " + fmt.format(me ? me.count : 0) + " Kisten";
+      $("rdInfo").textContent = "Gestartet von " + (act.started_by || "?") + " · du: " + fmt.format(me ? me.count : 0) + " Kisten · " + perHour(res.total, playMs(act)) + " Kisten pro Stunde";
+      $("rdPause").querySelector("span").textContent = rp ? "Pause beenden – weiter geht's" : "Kreativ-Pause starten";
+      $("rdPause").className = "btn small " + (rp ? "" : "ghost");
+      var ap = $("rdActivePauses");
+      if (!ap.contains(document.activeElement) && !ap.querySelector("details[open]")) { ap.textContent = ""; ap.appendChild(pauseEditor(act)); }
+      if (document.activeElement !== $("rdEditStart")) $("rdEditStart").value = hhmmOf(act.started_at);
     }
-    // Liste der beendeten Runden
+    // beendete Sessions
     var done = (S.rounds || []).filter(function (r) { return r.ended_at; });
-    var ul = $("rdList"); ul.textContent = "";
-    done.forEach(function (r) {
-      var res = roundResult(r.start_counts, r.end_counts);
+    var ul = $("rdList");
+    if (!ul.contains(document.activeElement) && !ul.querySelector("details[open]")) {
+      ul.textContent = "";
+      done.forEach(function (r) {
+        var res = resultOf(r);
+        var li = document.createElement("li"); li.className = "rd-item";
+        var b = document.createElement("button"); b.type = "button";
+        b.setAttribute("aria-expanded", String(S.openRound === r.id));
+        var left = document.createElement("div");
+        var w = document.createElement("span"); w.className = "rd-when"; w.textContent = dayTxt(r.started_at) + " · " + hm(r.started_at) + "–" + hm(r.ended_at);
+        var m = document.createElement("span"); m.className = "rd-meta"; m.textContent = durTxt(playMs(r)) + " gespielt · " + res.people.length + " Spieler" + (S.openRound === r.id ? " · zuklappen" : " · Auswertung");
+        left.appendChild(w); left.appendChild(m);
+        var n = document.createElement("span"); n.className = "rd-n"; n.textContent = fmt.format(res.total);
+        var sm = document.createElement("small"); sm.textContent = "Kisten"; n.appendChild(sm);
+        b.appendChild(left); b.appendChild(n);
+        b.addEventListener("click", function () { S.openRound = S.openRound === r.id ? null : r.id; renderRounds(); });
+        li.appendChild(b);
+        if (S.openRound === r.id) li.appendChild(reportEl(r, res));
+        ul.appendChild(li);
+      });
+    }
+    renderDays();
+  }
+
+  function renderDays() {
+    var days = {}, order = [];
+    (S.rounds || []).forEach(function (r) {
+      if (isNested(r)) return;
+      var k = dayKey(r.started_at);
+      if (!days[k]) { days[k] = { t: r.started_at, ms: 0, n: 0, sessions: 0, people: {}, boost: 0 }; order.push(k); }
+      var d = days[k], res = resultOf(r);
+      d.ms += playMs(r); d.n += res.total; d.sessions++; d.boost += res.team.count15 + res.team.count2;
+      res.people.forEach(function (p) { var key = p.name.toLowerCase(); if (!d.people[key]) d.people[key] = { name: p.name, count: 0 }; d.people[key].count += p.count; });
+    });
+    $("dayBox").hidden = !order.length;
+    var ul = $("dayList"); ul.textContent = "";
+    order.forEach(function (k) {
+      var d = days[k];
       var li = document.createElement("li"); li.className = "rd-item";
-      var b = document.createElement("button"); b.type = "button";
-      b.setAttribute("aria-expanded", String(S.openRound === r.id));
+      var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-expanded", String(S.openDay === k));
       var left = document.createElement("div");
-      var w = document.createElement("span"); w.className = "rd-when"; w.textContent = dayTxt(r.started_at) + " · " + hm(r.started_at) + "–" + hm(r.ended_at);
-      var m = document.createElement("span"); m.className = "rd-meta"; m.textContent = durTxt(new Date(r.ended_at) - new Date(r.started_at)) + " · " + res.people.length + " Spieler" + (S.openRound === r.id ? " · zuklappen" : " · Auswertung ansehen");
+      var w = document.createElement("span"); w.className = "rd-when"; w.textContent = new Date(d.t).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
+      var m = document.createElement("span"); m.className = "rd-meta"; m.textContent = durTxt(d.ms) + " gespielt · " + d.sessions + (d.sessions === 1 ? " Session" : " Sessions") + " · " + perHour(d.n, d.ms) + "/Std";
       left.appendChild(w); left.appendChild(m);
-      var n = document.createElement("span"); n.className = "rd-n"; n.textContent = fmt.format(res.total);
+      var n = document.createElement("span"); n.className = "rd-n"; n.textContent = fmt.format(d.n);
       var sm = document.createElement("small"); sm.textContent = "Kisten"; n.appendChild(sm);
       b.appendChild(left); b.appendChild(n);
-      b.addEventListener("click", function () { S.openRound = S.openRound === r.id ? null : r.id; renderRounds(); });
+      b.addEventListener("click", function () { S.openDay = S.openDay === k ? null : k; renderDays(); });
       li.appendChild(b);
-      if (S.openRound === r.id) li.appendChild(reportEl(r, res));
+      if (S.openDay === k) {
+        var box = document.createElement("div"); box.className = "report";
+        var ppl = Object.keys(d.people).map(function (x) { return d.people[x]; }).sort(function (a, c) { return c.count - a.count; });
+        if (ppl.length) {
+          var t = document.createElement("table"); t.className = "rtable";
+          var head = document.createElement("tr");
+          ["Spieler", "Kisten", "Anteil", "/Std"].forEach(function (h) { var th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
+          t.appendChild(head);
+          ppl.forEach(function (p) {
+            var tr = document.createElement("tr");
+            [p.name, fmt.format(p.count), Math.round(p.count / Math.max(1, d.n) * 100) + " %", perHour(p.count, d.ms)].forEach(function (v, i) {
+              var td = document.createElement("td"); td.textContent = v; if (i === 0) td.className = "nm"; tr.appendChild(td);
+            });
+            t.appendChild(tr);
+          });
+          var wrap = document.createElement("div"); wrap.className = "rwrap"; wrap.appendChild(t); box.appendChild(wrap);
+        }
+        var note = document.createElement("div"); note.className = "rd-sub";
+        note.textContent = "Spielzeit ohne Kreativ-Pausen. " + fmt.format(d.boost) + " Kisten in Schatzstunden." + (activeRound() && dayKey(activeRound().started_at) === k ? " Die laufende Session zählt schon mit." : "");
+        box.appendChild(note);
+        li.appendChild(box);
+      }
       ul.appendChild(li);
     });
   }
 
   function reportEl(r, res) {
     var box = document.createElement("div"); box.className = "report";
-    var ms = new Date(r.ended_at) - new Date(r.started_at), hrs = ms / 36e5;
+    var play = playMs(r), pz = pauseMs(r);
     var h3 = document.createElement("h3"); h3.textContent = "Auswertung " + dayTxt(r.started_at) + ", " + hm(r.started_at) + "–" + hm(r.ended_at) + " Uhr";
     box.appendChild(h3);
     var kpis = document.createElement("div"); kpis.className = "kpis";
-    var chance = -Math.expm1(logNone(res.team));
     [["Kisten gesamt", fmt.format(res.total)],
-     ["Dauer", durTxt(ms)],
-     ["Pro Stunde", hrs >= 1 / 60 ? fmt.format(Math.round(res.total / hrs)) : "–"],
+     ["Spielzeit", durTxt(play)],
+     ["Pro Stunde", perHour(res.total, play)],
      ["Spieler", String(res.people.length)],
-     ["In Schatzstunden", fmt.format(res.team.count15 + res.team.count2)],
-     ["Token-Chance", pct(chance)]].forEach(function (k) {
+     ["Kreativ-Pausen", pz ? durTxt(pz) : "keine"],
+     ["Token-Chance", pct(-Math.expm1(logNone(res.team)))]].forEach(function (k) {
       var d = document.createElement("div"); d.className = "kpi";
       var l = document.createElement("div"); l.className = "lbl"; l.textContent = k[0];
       var v = document.createElement("div"); v.className = "v"; v.textContent = k[1];
       d.appendChild(l); d.appendChild(v); kpis.appendChild(d);
     });
     box.appendChild(kpis);
-    var note = document.createElement("div"); note.className = "rd-sub";
-    note.textContent = "Token-Chance = so wahrscheinlich war mindestens ein Token bei den Kisten dieser Runde. Gestartet von " + (r.started_by || "?") + ", beendet von " + (r.ended_by || "?") + ".";
     if (res.people.length) {
       var wrap = document.createElement("div"); wrap.className = "rwrap";
       var t = document.createElement("table"); t.className = "rtable";
@@ -845,24 +1020,27 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       t.appendChild(head);
       res.people.forEach(function (p) {
         var tr = document.createElement("tr");
-        [p.name, fmt.format(p.count), Math.round(p.count / res.total * 100) + " %", hrs >= 1 / 60 ? fmt.format(Math.round(p.count / hrs)) : "–", fmt.format(p.boost)].forEach(function (v, i) {
+        [p.name, fmt.format(p.count), Math.round(p.count / res.total * 100) + " %", perHour(p.count, play), fmt.format(p.boost)].forEach(function (v, i) {
           var td = document.createElement("td"); td.textContent = v; if (i === 0) td.className = "nm"; tr.appendChild(td);
         });
         t.appendChild(tr);
       });
       wrap.appendChild(t); box.appendChild(wrap);
     } else {
-      var e = document.createElement("div"); e.className = "empty"; e.textContent = "In dieser Runde wurden keine Kisten gezählt."; box.appendChild(e);
+      var e = document.createElement("div"); e.className = "empty"; e.textContent = "In dieser Session wurden keine Kisten gezählt."; box.appendChild(e);
     }
+    box.appendChild(pauseEditor(r));
+    var note = document.createElement("div"); note.className = "rd-sub";
+    note.textContent = "Spielzeit = Dauer ohne Kreativ-Pausen. Token-Chance = so wahrscheinlich war mindestens ein Token bei den Kisten dieser Session. Gestartet von " + (r.started_by || "?") + ", beendet von " + (r.ended_by || "?") + ".";
     box.appendChild(note);
     var row = document.createElement("div"); row.className = "row";
     var del = document.createElement("button"); del.type = "button"; del.className = "btn small ghost";
-    var sp = document.createElement("span"); sp.textContent = "Runde aus der Liste löschen"; del.appendChild(sp);
+    var sp = document.createElement("span"); sp.textContent = "Session aus der Liste löschen"; del.appendChild(sp);
     del.addEventListener("click", function () {
-      ask("Diese Runde mit ihrer Auswertung für alle löschen? Die Kisten im Lobby-Zähler bleiben.", "Ja, Runde löschen", async function () {
+      ask("Diese Session mit ihrer Auswertung für alle löschen? Die Kisten im Lobby-Zähler bleiben.", "Ja, Session löschen", async function () {
         chk(await sb.from("rounds").delete().eq("id", r.id));
         S.rounds = S.rounds.filter(function (x) { return x.id !== r.id; }); S.openRound = null; renderRounds();
-        toast("Runde gelöscht");
+        toast("Session gelöscht");
       });
       $("settings").scrollIntoView({ behavior: "smooth", block: "end" });
     });
@@ -870,18 +1048,68 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     return box;
   }
 
-  $("rdStart").addEventListener("click", async function () {
+  // Grundstand für eine Session, die schon früher begonnen hat: Stand am Ende der letzten Session davor, sonst alles seit dem letzten Zurücksetzen
+  function baseBefore(t, exceptId) {
+    var prev = (S.rounds || []).filter(function (r) { return r.ended_at && r.id !== exceptId && new Date(r.ended_at) <= t && r.end_counts; })
+      .sort(function (a, b) { return new Date(b.ended_at) - new Date(a.ended_at); })[0];
+    var base = {};
+    if (prev) Object.keys(prev.end_counts).forEach(function (k) { if (k.charAt(0) !== "_") base[k] = prev.end_counts[k]; });
+    return base;
+  }
+
+  // Liegt der Zeitpunkt mitten in einer anderen, schon beendeten Session?
+  function clashAt(t, exceptId) {
+    return (S.rounds || []).filter(function (o) { return o.id !== exceptId && o.ended_at && new Date(o.started_at) < t && new Date(o.ended_at) > t; })[0] || null;
+  }
+  async function startSession(at) {
     if (!S.ready || activeRound()) return;
-    var gen = S.gen, btn = $("rdStart"); btn.disabled = true;
-    try {
-      clearTimeout(S.timer); await flush();
-      await loadPlayers(gen);
-      var r = await sb.from("rounds").insert({ lobby: S.code, started_by: S.name, start_counts: snapshot() }).select();
-      if (r.error && r.error.code !== "23505") throw r.error;
-      await loadRounds(gen);
-      toast(r.error ? "Es läuft schon eine Runde" : "Runde gestartet – viel Glück!");
-    } catch (e) { console.error(e); toast("Runde konnte nicht starten – bitte nochmal versuchen"); }
+    var gen = S.gen;
+    clearTimeout(S.timer); await flush();
+    await loadPlayers(gen);
+    var row = { lobby: S.code, started_by: S.name, start_counts: at ? baseBefore(at, null) : snapshot() };
+    if (at) row.started_at = at.toISOString();
+    var r = await sb.from("rounds").insert(row).select();
+    if (r.error && r.error.code !== "23505") throw r.error;
+    await loadRounds(gen);
+    toast(r.error ? "Es läuft schon eine Session" : at ? "Session ab " + hm(at) + " Uhr gestartet" : "Session gestartet – viel Glück!");
+  }
+  $("rdStart").addEventListener("click", async function () {
+    var btn = this; btn.disabled = true;
+    try { await startSession(null); } catch (e) { console.error(e); toast("Session konnte nicht starten – bitte nochmal versuchen"); }
     finally { btn.disabled = false; }
+  });
+  $("rdStartPast").addEventListener("click", async function () {
+    var at = timeAt(new Date(), $("rdStartAt").value);
+    if (!at) { toast("Bitte eine Startzeit eintragen"); return; }
+    if (at > new Date()) at.setDate(at.getDate() - 1);
+    var c1 = clashAt(at, null);
+    if (c1) { toast("Um " + hm(at) + " lief schon die Session " + hm(c1.started_at) + "–" + hm(c1.ended_at) + " Uhr"); return; }
+    var btn = this; btn.disabled = true;
+    try { await startSession(at); } catch (e) { console.error(e); toast("Session konnte nicht starten – bitte nochmal versuchen"); }
+    finally { btn.disabled = false; }
+  });
+  $("rdEditStartBtn").addEventListener("click", async function () {
+    var act = activeRound(); if (!act) return;
+    var at = timeAt(new Date(), $("rdEditStart").value);
+    if (!at) { toast("Bitte eine Startzeit eintragen"); return; }
+    if (at > new Date()) at.setDate(at.getDate() - 1);
+    var c2 = clashAt(at, act.id);
+    if (c2) { toast("Um " + hm(at) + " lief schon die Session " + hm(c2.started_at) + "–" + hm(c2.ended_at) + " Uhr"); return; }
+    var patch = { started_at: at.toISOString() };
+    if (at < new Date(act.started_at)) {
+      // früherer Start: Kisten ab dann mitzählen, Pausen behalten
+      patch.start_counts = Object.assign(baseBefore(at, act.id), { _pauses: pausesOf(act) });
+    }
+    try { await saveRound(act, patch); $("rdEditStart").blur(); toast("Startzeit auf " + hm(at) + " Uhr gesetzt"); }
+    catch (e) { console.error(e); toast("Hat nicht geklappt – bitte nochmal versuchen"); }
+  });
+  $("rdPause").addEventListener("click", async function () {
+    var act = activeRound(); if (!act) return;
+    var list = pausesOf(act).map(function (p) { return Object.assign({}, p); }), rp = list.filter(function (p) { return !p.to; })[0];
+    if (rp) { rp.to = new Date().toISOString(); if (new Date(rp.to) - new Date(rp.from) < 60000) list = list.filter(function (p) { return p !== rp; }); }
+    else list.push({ from: new Date().toISOString(), to: null });
+    try { await setPauses(act, list); toast(rp ? "Pause beendet – weiter geht's" : "Kreativ-Pause läuft"); }
+    catch (e) { console.error(e); toast("Hat nicht geklappt – bitte nochmal versuchen"); }
   });
   $("rdEnd").addEventListener("click", function () { $("rdConfirm").hidden = false; $("rdNo").focus(); });
   $("rdNo").addEventListener("click", function () { $("rdConfirm").hidden = true; });
@@ -891,16 +1119,20 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     try {
       clearTimeout(S.timer); await flush();
       await loadPlayers(gen);
-      chk(await sb.from("rounds").update({ ended_at: new Date().toISOString(), ended_by: S.name, end_counts: snapshot() }).eq("id", act.id).is("ended_at", null));
+      var now = new Date().toISOString();
+      var patch = { ended_at: now, ended_by: S.name, end_counts: snapshot() };
+      if (runningPause(act)) patch.start_counts = Object.assign({}, act.start_counts, { _pauses: pausesOf(act).map(function (p) { return p.to ? p : { from: p.from, to: now }; }) });
+      chk(await sb.from("rounds").update(patch).eq("id", act.id).is("ended_at", null));
       S.openRound = act.id;
       await loadRounds(gen);
       $("rdConfirm").hidden = true;
-      toast("Runde beendet – hier ist eure Auswertung");
+      toast("Session beendet – hier ist eure Auswertung");
       var li = $("rdList").firstChild; if (li) li.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (e) { console.error(e); toast("Runde konnte nicht beendet werden – bitte nochmal versuchen"); }
+    } catch (e) { console.error(e); toast("Session konnte nicht beendet werden – bitte nochmal versuchen"); }
     finally { btn.disabled = false; }
   });
   setInterval(function () { if (S.ready && !document.hidden && activeRound()) renderRounds(); }, 30000);
+
 
   /* ---------- Bildschirm anlassen ---------- */
   var wake = null;
@@ -1125,7 +1357,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121202100", newV = null;
+  var VERSION = "20261121222328", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
