@@ -323,7 +323,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       </svg>
       <span class="total" id="total">0</span>
       <span class="cap">Kisten im Team</span>
-      <span class="mine" id="mine">Tippen oder Leertaste = +1 Kiste</span>
+      <span class="mine" id="mine">Tippen oder Taste drücken = +1 Kiste</span>
     </button>
 
     <button class="vault" id="vault" type="button" disabled aria-label="Tresor geöffnet, plus fünf Kisten">
@@ -758,7 +758,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     $("nextN").textContent = M.odds + (boosted ? " während der Schatzstunde " + M.label + "." : ".") + " Der Token wird nicht „fällig“, egal wie viele Kisten schon offen sind.";
     var ln = logNone(team);
     $("total").textContent = fmt.format(total);
-    $("mine").textContent = S.ready ? "Du: " + fmt.format(meTotal) + " · Tippen oder Leertaste = +1" : "Lade Lobby …";
+    $("mine").textContent = S.ready ? "Du: " + fmt.format(meTotal) + " · Tippen oder Taste = +1" : "Lade Lobby …";
     var cum = -Math.expm1(ln);
     $("cum").textContent = pct(cum);
     $("fill").style.width = (cum * 100).toFixed(3) + "%";
@@ -805,9 +805,10 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 
   /* ---------- Knöpfe ---------- */
   $("tap").addEventListener("click", function (e) { add(1, e); keepAwake(); });
-  // Leertaste auf der Tastatur (z. B. iPad mit Tastatur) = +1 Kiste
+  // Jede Taste auf der Tastatur (z. B. iPad mit Tastatur) = +1 Kiste
+  var NO_COUNT = { Shift: 1, Control: 1, Alt: 1, Meta: 1, CapsLock: 1, Tab: 1, Fn: 1, FnLock: 1, OS: 1, AltGraph: 1, Dead: 1, Unidentified: 1, Process: 1 };
   function spaceCounts(e) {
-    if (e.code !== "Space" && e.key !== " ") return false;
+    if (e.ctrlKey || e.metaKey || e.altKey || NO_COUNT[e.key]) return false;   // Cmd+R, Cmd+Tab usw. bleiben normal
     var t = e.target, tag = t && t.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return false;
     return !$("lobby").hidden && S.ready && !$("tap").disabled;
@@ -886,7 +887,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121183256", newV = null;
+  var VERSION = "20261121192702", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
