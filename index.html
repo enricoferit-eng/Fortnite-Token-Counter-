@@ -168,14 +168,14 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   background: linear-gradient(180deg, #fff27a, var(--legend)); box-shadow: 0 5px 0 #a35a00, 0 10px 30px rgba(0,0,0,.4); }
 /* Bildschirm-Blitz bei jedem Zählen: hell genug, um ihn aus dem Augenwinkel zu sehen */
 .flash { position: fixed; inset: 0; pointer-events: none; z-index: 25; opacity: 0;
-  --fc: rgba(255, 36, 64, .95); background: rgba(255, 30, 60, .28);
-  box-shadow: inset 0 0 0 12px var(--fc), inset 0 0 140px 50px var(--fc); }
-.flash.big { --fc: rgba(70, 225, 255, .95); background: rgba(70, 225, 255, .3); }
-.flash.go { animation: flash .42s ease-out; }
-.flash.big.go { animation: flash2 .75s ease-out; }
-@keyframes flash { 0% { opacity: 1 } 100% { opacity: 0 } }
-@keyframes flash2 { 0% { opacity: 1 } 30% { opacity: .15 } 45% { opacity: 1 } 100% { opacity: 0 } }
-@media (prefers-reduced-motion: reduce) { .flash.go, .flash.big.go { animation-duration: .3s; } }
+  --fc: rgba(255, 20, 50, 1); background: rgba(255, 25, 55, .5);
+  box-shadow: inset 0 0 0 22px var(--fc), inset 0 0 220px 90px var(--fc); }
+.flash.big { --fc: rgba(60, 225, 255, 1); background: rgba(60, 225, 255, .5); }
+.flash.go { animation: flash .6s ease-out; }
+.flash.big.go { animation: flash2 .9s ease-out; }
+@keyframes flash { 0% { opacity: 1 } 30% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes flash2 { 0% { opacity: 1 } 22% { opacity: 1 } 35% { opacity: .1 } 50% { opacity: 1 } 65% { opacity: 1 } 100% { opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { .flash.go, .flash.big.go { animation-duration: .45s; } }
 .foot { font-size: .75rem; color: var(--muted); line-height: 1.5; text-align: center; }
 .namerow { display: flex; gap: 10px; align-items: center; }
 .choice { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -899,7 +899,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121195322", newV = null;
+  var VERSION = "20261121201905", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
