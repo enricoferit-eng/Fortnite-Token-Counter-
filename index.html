@@ -216,7 +216,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
 .pz-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--night); border-radius: 4px; padding: 6px 6px 6px 10px; font-size: .88rem; font-variant-numeric: tabular-nums; }
 .pz-list .lob-x { flex: 0 0 36px; height: 32px; }
 
-.tabs { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 6px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+.tabs { display: grid; grid-template-columns: repeat(5, 1fr) auto; gap: 6px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
   background: rgba(18,10,58,.92); border: 2px solid var(--edge); border-radius: 6px; padding: 6px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 .tab { appearance: none; cursor: pointer; border: 0; border-radius: 4px; background: transparent; color: var(--muted); padding: 10px 6px; min-width: 44px;
   font: 400 1.05rem var(--display); letter-spacing: .04em; text-transform: uppercase; position: relative; }
@@ -349,6 +349,41 @@ body.quake main { animation: quake .6s; }
 .chart text { fill: var(--muted); font: 600 10px var(--body); }
 .chart .bv { fill: var(--fg); font: 700 10px var(--body); }
 @media (prefers-reduced-motion: reduce) { .floater, .mile-in, .feed > div, .pod .crown { animation-duration: .01s; } }
+
+/* Welle 3 */
+.chest .w1 { stop-color: var(--w1, #c46a2b); } .chest .w2 { stop-color: var(--w2, #7a3512); }
+.chest .t1 { stop-color: var(--t1, #fff27a); } .chest .t2 { stop-color: var(--t2, #e08a00); }
+.chest [stroke="#3a1606"] { stroke: var(--sk, #3a1606); } .chest [fill="#3a1606"] { fill: var(--sk, #3a1606); }
+.tap.skinglow .chest { filter: drop-shadow(0 12px 18px rgba(0,0,0,.45)) drop-shadow(0 0 18px var(--skglow)); }
+.tap.rainbow .chest { animation: rainbow 4s linear infinite; }
+@keyframes rainbow { to { filter: hue-rotate(360deg) drop-shadow(0 0 18px #fff); } }
+@media (max-width: 420px) { .tab { font-size: .82rem; padding: 9px 1px; letter-spacing: 0; } }
+.lvrow { display: flex; align-items: center; gap: 16px; }
+.hex { width: 92px; height: 104px; flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--ink);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: linear-gradient(160deg, #fff27a, var(--legend) 55%, var(--legend2)); }
+.hex .lbl { color: var(--ink); opacity: .8; }
+.hex b { font: 400 2.8rem var(--display); line-height: 1; }
+.lvw { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.lvname { font: 400 1.4rem var(--display); text-transform: uppercase; transform: skewX(-6deg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lvtrack .gfill { background: linear-gradient(90deg, var(--rare), var(--epic)); box-shadow: 0 0 12px rgba(198,75,255,.6); }
+.quests { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.quest { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center; background: var(--night); border: 2px solid var(--edge); border-radius: 4px; padding: 10px; }
+.quest .qi { font-size: 1.4rem; text-align: center; }
+.quest .qw { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.quest .gtrack { height: 10px; margin: 0; }
+.quest .qn { font: 400 1.05rem var(--display); font-variant-numeric: tabular-nums; }
+.quest.done { border-color: var(--uncommon); }
+.quest.done .gfill { background: var(--uncommon); }
+.skins { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.skin { appearance: none; cursor: pointer; border: 2px solid var(--edge); background: var(--night); color: var(--fg); border-radius: 6px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: var(--body); }
+.skin .sw { width: 56px; height: 44px; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg, var(--w1), var(--w2)); border: 3px solid var(--t2); position: relative; box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+.skin .sw i { position: absolute; left: 0; right: 0; top: 14px; height: 7px; background: linear-gradient(180deg, var(--t1), var(--t2)); }
+.skin b { font-size: .85rem; }
+.skin small { font-size: .7rem; color: var(--muted); }
+.skin.on { border-color: var(--legend); box-shadow: 0 0 0 2px var(--legend), 0 0 16px rgba(255,177,26,.4); }
+.skin.locked .sw { filter: saturate(.45) brightness(.55); }
+.skin:focus-visible { outline: 3px solid var(--rare); outline-offset: 2px; }
+.lvb { display: inline-block; font: 700 .65rem var(--body); background: var(--epic); color: #fff; padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: middle; letter-spacing: .03em; }
 
 /* Bildschirm-Blitz bei jedem Zählen: hell genug, um ihn aus dem Augenwinkel zu sehen */
 .flash { position: fixed; inset: 0; pointer-events: none; z-index: 25; opacity: 0;
@@ -508,8 +543,8 @@ body.quake main { animation: quake .6s; }
       <span class="rarelbl" id="rareLbl" hidden></span>
       <svg class="chest" viewBox="0 0 200 160" aria-hidden="true">
         <defs>
-          <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c46a2b"/><stop offset="1" stop-color="#7a3512"/></linearGradient>
-          <linearGradient id="trim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff27a"/><stop offset="1" stop-color="#e08a00"/></linearGradient>
+          <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop class="w1" offset="0" stop-color="#c46a2b"/><stop class="w2" offset="1" stop-color="#7a3512"/></linearGradient>
+          <linearGradient id="trim" x1="0" y1="0" x2="0" y2="1"><stop class="t1" offset="0" stop-color="#fff27a"/><stop class="t2" offset="1" stop-color="#e08a00"/></linearGradient>
           <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff7c2"/><stop offset="1" stop-color="#ffb11a" stop-opacity="0"/></radialGradient>
           <linearGradient id="beamg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff7c2" stop-opacity=".95"/><stop offset="1" stop-color="#ffd23a" stop-opacity="0"/></linearGradient>
         </defs>
@@ -567,6 +602,7 @@ body.quake main { animation: quake .6s; }
 
     <nav class="tabs" role="tablist" aria-label="Bereiche">
       <button class="tab" type="button" role="tab" data-tab="team" aria-selected="true">Team</button>
+      <button class="tab" type="button" role="tab" data-tab="pass" aria-selected="false">Pass</button>
       <button class="tab" type="button" role="tab" data-tab="session" aria-selected="false">Session<i class="tdot" id="dot-session" hidden></i></button>
       <button class="tab" type="button" role="tab" data-tab="runde" aria-selected="false">Runden<i class="tdot" id="dot-runde" hidden></i></button>
       <button class="tab" type="button" role="tab" data-tab="tage" aria-selected="false">Tage</button>
@@ -625,6 +661,30 @@ body.quake main { animation: quake .6s; }
       <div class="marks"><span>50 % ab <b id="p50"></b></span><span>90 % ab <b id="p90"></b></span><span>99 % ab <b id="p99"></b></span></div>
       <div class="fill" id="fill" hidden></div>
     </section>
+    </div>
+
+    <div class="pane" data-pane="pass" hidden>
+      <section class="slab lvbox">
+        <div class="lvrow">
+          <div class="hex"><span class="lbl">Level</span><b id="lvNum">1</b></div>
+          <div class="lvw">
+            <b class="lvname" id="lvName"></b>
+            <div class="gtrack lvtrack"><div class="gfill" id="lvFill"></div></div>
+            <span class="rd-sub" id="lvTxt"></span>
+          </div>
+        </div>
+        <p class="rd-sub" style="margin:10px 0 0">Jede Kiste in dieser Lobby gibt 10 XP, in der Schatzstunde 20 XP. Höhere Level schalten neue Kisten-Skins frei.</p>
+      </section>
+      <section class="slab">
+        <div class="th-head"><h2>Aufträge heute</h2><span class="th-state on">⭐ <span id="starNum">0</span></span></div>
+        <ul class="quests" id="quests"></ul>
+        <p class="rd-sub" style="margin:8px 0 0">Jeden Tag drei neue. Jeder geschaffte Auftrag gibt einen ⭐ – damit schaltet ihr Extra-Skins frei. Zählt auf diesem Gerät.</p>
+      </section>
+      <section class="slab">
+        <h2>Kisten-Skins</h2>
+        <div class="skins" id="skins"></div>
+        <p class="rd-sub" style="margin:8px 0 0">Dein Skin ist nur auf deinem Gerät zu sehen.</p>
+      </section>
     </div>
 
     <div class="pane" data-pane="session" hidden>
@@ -935,7 +995,7 @@ body.quake main { animation: quake .6s; }
 
     var gen = ++S.gen;
     S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false; S.rounds = []; S.open = { session: null, runde: null }; S.openDay = null;
-    S.serverLoaded = false; S.prevTotal = null; S.seenFunds = {}; S.fundsReady = false; S.activeAt = {};
+    S.serverLoaded = false; S.prevTotal = null; S.seenFunds = {}; S.fundsReady = false; S.activeAt = {}; S.lastLevel = 0; S.hype = { vaults: {}, combo: {}, lastAt: {} };
     S.mine = zero(); S.written = own.length ? null : zero();
     if (own.length && epochOf(own[0]) === epoch) { S.mine = fromRow(own[0]); S.written = fromRow(own[0]); }
     S.tmode = MODES[lob[0].mode] ? lob[0].mode : "normal"; S.tmodeAt = lob[0].mode_at || null;
@@ -1409,6 +1469,7 @@ body.quake main { animation: quake .6s; }
     Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) { b.setAttribute("aria-selected", String(b.dataset.tab === t)); });
     Array.prototype.forEach.call(document.querySelectorAll(".pane"), function (p) { p.hidden = p.dataset.pane !== t; });
     lsSet("tkz-tab", t);
+    if (t === "pass" && typeof renderPass === "function") renderPass();
   }
   Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (b) { b.addEventListener("click", function () { showTab(b.dataset.tab); }); });
   showTab(lsGet("tkz-tab") || "team");
@@ -1479,7 +1540,9 @@ body.quake main { animation: quake .6s; }
       var src0 = FX_SRC; FX_SRC = null;
       try { FX.count(k, src0); } catch (e) {}
       S.activeAt = S.activeAt || {}; S.activeAt[S.name.toLowerCase()] = Date.now();
+      hypeNote(S.name, src0 === "vault" ? 1 : 0, FX ? FX.combo() : 0);
       queueTap(k, src0);
+      try { questEvent("chests", k); if (S.tmode && S.tmode !== "normal") questEvent("boost", k); } catch (e) {}
     }
   }
 
@@ -1532,6 +1595,8 @@ body.quake main { animation: quake .6s; }
 
     trackMilestone(total);
     if (typeof renderGoal === "function") renderGoal();
+    checkLevelUp(); applySkin();
+    if (!document.querySelector('[data-pane="pass"]').hidden) renderPass();
     var ul = $("players"); ul.textContent = ""; var pod = $("podium"); pod.textContent = "";
     if (total === 0) {
       var li0 = document.createElement("li"); li0.className = "empty"; li0.textContent = "Noch niemand hat getippt. Los geht's!"; ul.appendChild(li0); return;
@@ -1546,8 +1611,10 @@ body.quake main { animation: quake .6s; }
       var rk = document.createElement("span"); rk.className = "rank"; rk.textContent = "#" + (i + 1);
       var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
       if (p.me) { var sm = document.createElement("small"); sm.textContent = "du"; nm.appendChild(sm); }
-      var ttl = i === 0 ? "👑 Kistenkönig" : (boostKing && boostKing.boost > 0 && boostKing === p ? "✨ Schatzjäger" : (isTyping(p.name) ? "tippt gerade …" : ""));
-      if (ttl) { var tt = document.createElement("span"); tt.className = "ttl"; tt.textContent = ttl; nm.appendChild(tt); }
+      var lv = document.createElement("span"); lv.className = "lvb"; lv.textContent = "Lv " + levelOf(xpOf(p.m)); nm.appendChild(lv);
+      var tl = titlesOf(p, i, boostKing);
+      if (isTyping(p.name)) tl.unshift("tippt gerade …");
+      if (tl.length) { var tt = document.createElement("span"); tt.className = "ttl"; tt.textContent = tl.slice(0, 2).join(" · "); nm.appendChild(tt); }
       var right = document.createElement("span");
       var ct = document.createElement("div"); ct.className = "ct"; ct.textContent = fmt.format(p.count);
       var pc = document.createElement("div"); pc.className = "pc"; pc.textContent = Math.round(p.count / total * 100) + " % vom Team" + (p.boost ? " · " + fmt.format(p.boost) + " in Schatzst." : "");
@@ -1656,7 +1723,7 @@ body.quake main { animation: quake .6s; }
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121232341", newV = null;
+  var VERSION = "20261121233051", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
@@ -1673,6 +1740,120 @@ body.quake main { animation: quake .6s; }
   setInterval(function () { if (!document.hidden) checkVersion(); }, 60000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) checkVersion(); });
 
+  /* ---------- Welle 3: Level, Skins, Aufträge, Titel ---------- */
+  // XP kommt aus den Kisten in der Lobby: normale Kiste 10 XP, in der Schatzstunde 20 XP.
+  function xpOf(m) { return (m.count || 0) * 10 + ((m.count15 || 0) + (m.count2 || 0)) * 20; }
+  function xpFor(L) { return 50 * L * L; }                       // XP, die man für Level L braucht
+  function levelOf(xp) { var L = Math.floor(Math.sqrt(xp / 50)); return Math.max(1, Math.min(100, L)); }
+  var SKINS = [
+    { id: "holz",    name: "Holz",       lvl: 1,   v: { w1: "#c46a2b", w2: "#7a3512", t1: "#fff27a", t2: "#e08a00", sk: "#3a1606" } },
+    { id: "frost",   name: "Frost",      lvl: 5,   v: { w1: "#bfeaff", w2: "#4aa3e0", t1: "#ffffff", t2: "#8fd8ff", sk: "#0d3a5c" }, glow: "#7fe9ff" },
+    { id: "lava",    name: "Lava",       lvl: 10,  v: { w1: "#3a1a14", w2: "#1a0a08", t1: "#ffb11a", t2: "#ff3b00", sk: "#120403" }, glow: "#ff5a00" },
+    { id: "gift",    name: "Giftig",     lvl: 15,  v: { w1: "#3d6b1f", w2: "#1d3a0b", t1: "#c8ff4a", t2: "#5be05b", sk: "#0c1f05" }, glow: "#9dff3a" },
+    { id: "galaxie", name: "Galaxie",    lvl: 25,  v: { w1: "#3b1d8f", w2: "#0b0630", t1: "#7fe9ff", t2: "#c64bff", sk: "#05021a" }, glow: "#c64bff" },
+    { id: "gold",    name: "Gold",       lvl: 50,  v: { w1: "#ffe27a", w2: "#c98a00", t1: "#fffbe0", t2: "#ffd23a", sk: "#5a3a00" }, glow: "#ffd23a" },
+    { id: "diamant", name: "Diamant",    lvl: 75,  v: { w1: "#e8fbff", w2: "#7fd3ff", t1: "#ffffff", t2: "#c9f3ff", sk: "#1d4a6b" }, glow: "#bff4ff" },
+    { id: "regen",   name: "Regenbogen", lvl: 100, v: { w1: "#ff5470", w2: "#7b2cff", t1: "#5be05b", t2: "#2fc1ff", sk: "#20063a" }, glow: "#ffffff", rainbow: true },
+    { id: "neon",    name: "Neon",       stars: 3, v: { w1: "#14002e", w2: "#05000f", t1: "#ff3bd4", t2: "#00f0ff", sk: "#ff3bd4" }, glow: "#ff3bd4" },
+    { id: "schatten",name: "Schatten",   stars: 10, v: { w1: "#2a2a35", w2: "#0a0a10", t1: "#8a8aa0", t2: "#3a3a4a", sk: "#000000" }, glow: "#000000" }
+  ];
+  function todayKey() { var d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  function stars() { return parseInt(lsGet("tkz-stars") || "0", 10) || 0; }
+  function myLevel() { var me = (players() || []).filter(function (p) { return p.me; })[0]; return levelOf(me ? xpOf(me.m) : 0); }
+  function skinUnlocked(sk) { return sk.stars ? stars() >= sk.stars : myLevel() >= sk.lvl; }
+  function applySkin() {
+    var id = lsGet("tkz-skin") || "holz", sk = SKINS.filter(function (x) { return x.id === id; })[0] || SKINS[0];
+    if (!skinUnlocked(sk)) sk = SKINS[0];
+    var tap = $("tap");
+    Object.keys(sk.v).forEach(function (k) { tap.style.setProperty("--" + k, sk.v[k]); });
+    tap.style.setProperty("--skglow", sk.glow || "transparent");
+    tap.classList.toggle("skinglow", !!sk.glow); tap.classList.toggle("rainbow", !!sk.rainbow);
+    return sk;
+  }
+
+  // Tägliche Aufträge – zählen auf diesem Gerät, jeden Tag neu
+  var QPOOL = [
+    { id: "k100", t: "Öffne 100 Kisten", key: "chests", n: 100 },
+    { id: "k250", t: "Öffne 250 Kisten", key: "chests", n: 250 },
+    { id: "k500", t: "Öffne 500 Kisten", key: "chests", n: 500 },
+    { id: "v5",   t: "Knacke 5 Tresore", key: "vaults", n: 5 },
+    { id: "v15",  t: "Knacke 15 Tresore", key: "vaults", n: 15 },
+    { id: "c15",  t: "Schaffe eine Combo ×15", key: "combo", n: 15 },
+    { id: "c30",  t: "Schaffe eine Combo ×30", key: "combo", n: 30 },
+    { id: "s50",  t: "Öffne 50 Kisten in einer Schatzstunde", key: "boost", n: 50 },
+    { id: "r3",   t: "Finde 3 seltene Kisten", key: "rares", n: 3 },
+    { id: "l1",   t: "Finde eine legendäre Kiste", key: "legends", n: 1 },
+    { id: "e5",   t: "Schicke 5 Reaktionen", key: "reacts", n: 5 }
+  ];
+  function questsToday() {
+    var k = todayKey(), seed = 0; for (var i = 0; i < k.length; i++) seed = (seed * 33 + k.charCodeAt(i)) % 100003;
+    var pool = QPOOL.slice(), out = [];
+    while (out.length < 3) { seed = (seed * 9301 + 49297) % 233280; var idx = seed % pool.length; out.push(pool.splice(idx, 1)[0]); }
+    return out;
+  }
+  function qState() { try { var o = JSON.parse(lsGet("tkz-q-" + todayKey()) || "{}"); return o && typeof o === "object" ? o : {}; } catch (e) { return {}; } }
+  function qSave(o) { lsSet("tkz-q-" + todayKey(), JSON.stringify(o)); }
+  function questEvent(key, amount, isMax) {
+    var st = qState(); st.done = st.done || [];
+    if (isMax) st[key] = Math.max(st[key] || 0, amount); else st[key] = (st[key] || 0) + amount;
+    questsToday().forEach(function (q) {
+      if (st.done.indexOf(q.id) < 0 && (st[q.key] || 0) >= q.n) {
+        st.done.push(q.id); lsSet("tkz-stars", String(stars() + 1));
+        setTimeout(function () { celebrate("Auftrag geschafft", "+1 ⭐", q.t, 90); }, 300);
+      }
+    });
+    qSave(st);
+    if (!document.querySelector('[data-pane="pass"]').hidden) renderPass();
+  }
+
+  function renderPass() {
+    if (!S.ready) return;
+    var me = (players() || []).filter(function (p) { return p.me; })[0], xp = me ? xpOf(me.m) : 0, L = levelOf(xp);
+    var cur = xpFor(L), nxt = xpFor(L + 1), into = L >= 100 ? 1 : (xp - cur) / (nxt - cur);
+    $("lvNum").textContent = L; $("lvName").textContent = S.name;
+    $("lvFill").style.width = (Math.max(0, Math.min(1, into)) * 100).toFixed(1) + "%";
+    $("lvTxt").textContent = L >= 100 ? "Maximales Level erreicht!" : fmt.format(xp) + " XP · noch " + fmt.format(Math.max(0, nxt - xp)) + " XP bis Level " + (L + 1) + " (≈ " + fmt.format(Math.ceil(Math.max(0, nxt - xp) / 10)) + " Kisten)";
+    $("starNum").textContent = stars();
+    var st = qState(), ql = $("quests"); ql.textContent = "";
+    questsToday().forEach(function (q) {
+      var v = Math.min(q.n, st[q.key] || 0), done = (st.done || []).indexOf(q.id) >= 0;
+      var li = document.createElement("li"); li.className = "quest" + (done ? " done" : "");
+      li.innerHTML = '<span class="qi"></span><div class="qw"><b></b><div class="gtrack"><div class="gfill"></div></div></div><span class="qn"></span>';
+      li.querySelector(".qi").textContent = done ? "✅" : "🎯";
+      li.querySelector("b").textContent = q.t;
+      li.querySelector(".gfill").style.width = (v / q.n * 100) + "%";
+      li.querySelector(".qn").textContent = done ? "+1 ⭐" : fmt.format(v) + "/" + fmt.format(q.n);
+      ql.appendChild(li);
+    });
+    var grid = $("skins"); grid.textContent = "";
+    var sel = applySkin().id;
+    SKINS.forEach(function (sk) {
+      var ok = skinUnlocked(sk), b = document.createElement("button"); b.type = "button";
+      b.className = "skin" + (sk.id === sel ? " on" : "") + (ok ? "" : " locked");
+      b.style.setProperty("--w1", sk.v.w1); b.style.setProperty("--w2", sk.v.w2); b.style.setProperty("--t1", sk.v.t1); b.style.setProperty("--t2", sk.v.t2);
+      b.innerHTML = '<span class="sw"><i></i></span><b></b><small></small>';
+      b.querySelector("b").textContent = sk.name;
+      b.querySelector("small").textContent = sk.id === sel ? "ausgewählt" : ok ? "antippen" : sk.stars ? "🔒 " + sk.stars + " ⭐" : "🔒 Level " + sk.lvl;
+      b.setAttribute("aria-label", sk.name + "-Kiste" + (ok ? "" : ", gesperrt"));
+      b.addEventListener("click", function () {
+        if (!ok) { toast(sk.stars ? "Schaltest du mit " + sk.stars + " ⭐ aus Aufträgen frei" : "Schaltest du ab Level " + sk.lvl + " frei"); return; }
+        lsSet("tkz-skin", sk.id); applySkin(); renderPass(); toast(sk.name + "-Kiste ausgewählt");
+      });
+      grid.appendChild(b);
+    });
+  }
+  // Level-Up erkennen
+  function checkLevelUp() {
+    if (!S.serverLoaded) return;
+    var L = myLevel();
+    if (S.lastLevel && L > S.lastLevel) {
+      var fresh = SKINS.filter(function (sk) { return sk.lvl && sk.lvl > S.lastLevel && sk.lvl <= L; })[0];
+      celebrate("Level up!", "Level " + L, fresh ? "Neu freigeschaltet: " + fresh.name + "-Kiste 🎁" : "Weiter so! 💪", 120);
+    }
+    S.lastLevel = L;
+  }
+
+
   /* ---------- Welle 2: Team-Hype ---------- */
   function hueOf(name) { var key = String(name || "?").toLowerCase(), h = 0; for (var c = 0; c < key.length; c++) h = (h * 31 + key.charCodeAt(c)) % 360; return h; }
   function avatarEl(name, big) {
@@ -1681,6 +1862,26 @@ body.quake main { animation: quake .6s; }
     return a;
   }
   function isTyping(name) { return Date.now() - ((S.activeAt || {})[String(name).toLowerCase()] || 0) < 3500; }
+  // Titel: aus den Lobby-Daten und aus dem, was diese Sitzung live mitbekommen hat
+  function titlesOf(p, i, boostKing) {
+    var out = [], key = p.name.toLowerCase(), H = S.hype || {};
+    if (i === 0) out.push("👑 Kistenkönig");
+    if (boostKing && boostKing.boost > 0 && boostKing === p) out.push("✨ Schatzjäger");
+    var vk = Object.keys(H.vaults || {}).sort(function (a, b) { return H.vaults[b] - H.vaults[a]; })[0];
+    if (vk === key && H.vaults[vk] >= 3) out.push("🔓 Tresorknacker");
+    var ck = Object.keys(H.combo || {}).sort(function (a, b) { return H.combo[b] - H.combo[a]; })[0];
+    if (ck === key && H.combo[ck] >= 15) out.push("🔥 Dauerbrenner");
+    var last = (H.lastAt || {})[key];
+    if (last) { var h = new Date(last).getHours(); if (h < 5) out.push("🦉 Nachteule"); else if (h < 9) out.push("🌅 Frühaufsteher"); }
+    return out;
+  }
+  function hypeNote(name, vaults, combo) {
+    S.hype = S.hype || { vaults: {}, combo: {}, lastAt: {} };
+    var k = String(name).toLowerCase();
+    if (vaults) S.hype.vaults[k] = (S.hype.vaults[k] || 0) + vaults;
+    if (combo) S.hype.combo[k] = Math.max(S.hype.combo[k] || 0, combo);
+    S.hype.lastAt[k] = Date.now();
+  }
   function podiumEl(people) {
     var box = document.createElement("div"); box.className = "podium";
     [1, 0, 2].forEach(function (i) {
@@ -1715,6 +1916,7 @@ body.quake main { animation: quake .6s; }
   function onRemoteTap(p) {
     if (!p || !p.name) return;
     S.activeAt = S.activeAt || {}; S.activeAt[String(p.name).toLowerCase()] = Date.now();
+    hypeNote(p.name, p.vault || 0, p.combo || 0);
     if (p.combo >= 10) pushFeed(p.name, p.name + " COMBO ×" + p.combo + " 🔥", "hot");
     else if (p.vault) pushFeed(p.name, p.name + " 🔓 Tresor +" + (p.vault * 5) + (p.n > p.vault * 5 ? " · +" + (p.n - p.vault * 5) : ""), "cold");
     else pushFeed(p.name, p.name + " +" + p.n);
@@ -1733,6 +1935,7 @@ body.quake main { animation: quake .6s; }
     b.addEventListener("click", function () {
       if (!S.ready || Date.now() - lastReact < 350) return; lastReact = Date.now();
       var p = { name: S.name, e: b.dataset.e }; showReact(p); bc("react", p);
+      try { questEvent("reacts", 1); } catch (e) {}
     });
   });
 
@@ -2044,12 +2247,14 @@ body.quake main { animation: quake .6s; }
     function count(k, src) {
       var tap = $("tap"), chest = tap.querySelector(".chest");
       if (src === "vault") {
+        try { questEvent("vaults", 1); } catch (e) {}
         var c = center($("vault"));
         burst(c.x, c.y - 10, "vault", reduce ? 12 : 46); SND.vault();
         flashClass($("vault"), "crack", 1000);
         return;
       }
       comboHit();
+      try { questEvent("combo", combo, true); } catch (e) {}
       var kind = "normal", r = Math.random();
       if (k === 1 && r < 1 / 60) kind = "legend"; else if (k === 1 && r < 1 / 12) kind = "rare";
       if (src === "big") kind = "rare";
@@ -2063,6 +2268,7 @@ body.quake main { animation: quake .6s; }
       var c2 = center(chest);
       burst(c2.x, c2.y - 20, kind, reduce ? 6 : kind === "legend" ? 80 : kind === "rare" ? 38 : 18);
       (SND[kind] || SND.pop)(); if (kind !== "normal") SND.pop();
+      try { if (kind === "rare" && src !== "big") questEvent("rares", 1); if (kind === "legend") questEvent("legends", 1); } catch (e) {}
     }
 
     function setSound(on) {
