@@ -163,6 +163,27 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 .pk-t { font-family: var(--display); font-size: 1.9rem; text-transform: uppercase; line-height: 1; transform: skewX(-6deg); }
 .pk-s { font-weight: 700; font-size: .92rem; line-height: 1.35; opacity: .9; }
 .err { color: #ffb3bf; }
+.th-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.th-head h2 { margin: 0; }
+.th-state { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.th-state.on { color: var(--legend); }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.seg-b { appearance: none; cursor: pointer; border: 2px solid var(--edge); background: var(--night); color: var(--fg); border-radius: 4px; padding: 11px 6px;
+  font: 400 1.15rem var(--display); letter-spacing: .04em; text-transform: uppercase; }
+.seg-b:hover { border-color: var(--rare); }
+.seg-b:focus-visible { outline: 3px solid var(--rare); outline-offset: 2px; }
+.seg-b[aria-pressed="true"] { color: var(--ink); border-color: #fff3b0; background: linear-gradient(180deg, #fff27a 0%, var(--legend) 100%); box-shadow: 0 4px 0 #a35a00; }
+.seg-b[data-mode="normal"][aria-pressed="true"] { color: #fff; border-color: var(--edge); background: var(--panel2); box-shadow: none; }
+.seg-b small { display: block; font-family: var(--body); font-size: .68rem; font-weight: 700; letter-spacing: 0; text-transform: none; opacity: .8; margin-top: 2px; }
+.th-note { font-size: .8rem; color: var(--muted); margin: 10px 0 0; line-height: 1.45; }
+.tap.boost { border-color: #fff27a; box-shadow: 0 8px 0 #1a0650, 0 0 0 4px rgba(255,177,26,.45), 0 0 40px rgba(255,177,26,.55), inset 0 0 60px rgba(0,0,0,.35);
+  background:
+    radial-gradient(60% 50% at 50% 42%, rgba(255,240,140,.75) 0%, rgba(255,150,0,.3) 45%, transparent 72%),
+    repeating-conic-gradient(from 0deg at 50% 42%, rgba(255,230,120,.16) 0deg 10deg, transparent 10deg 20deg),
+    linear-gradient(180deg, #a12cff 0%, #4a0f9e 100%); }
+.boostbadge { position: absolute; top: 12px; left: 50%; transform: translateX(-50%) skewX(-6deg); white-space: nowrap;
+  background: linear-gradient(180deg, #fff27a, var(--legend)); color: var(--ink); font: 400 1rem var(--display); letter-spacing: .06em; text-transform: uppercase;
+  padding: 6px 12px; border-radius: 3px; box-shadow: 0 3px 0 #a35a00; }
 .lobbylist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .lob { display: flex; gap: 8px; align-items: stretch; }
 .lob-go { flex: 1 1 auto; min-width: 0; appearance: none; cursor: pointer; text-align: left; color: var(--fg); font-family: var(--body);
@@ -252,7 +273,18 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       <button class="btn small ghost" id="menuBtn" type="button"><span>Menü</span></button>
     </div>
 
+    <section class="slab" id="thBox">
+      <div class="th-head"><h2>Schatzstunde</h2><span class="th-state" id="thState">aus</span></div>
+      <div class="seg" role="group" aria-label="Schatzstunde einstellen">
+        <button class="seg-b" type="button" data-mode="normal" aria-pressed="true">Aus<small>1 zu 137.500</small></button>
+        <button class="seg-b" type="button" data-mode="x15" aria-pressed="false">1,5×<small>1 zu 91.667</small></button>
+        <button class="seg-b" type="button" data-mode="x2" aria-pressed="false">2×<small>1 zu 68.750</small></button>
+      </div>
+      <p class="th-note">Gilt für alle in der Lobby. Jede Kiste zählt mit der Chance, die beim Öffnen galt. Nach der Schatzstunde wieder auf „Aus“ stellen.</p>
+    </section>
+
     <button class="tap" id="tap" type="button" disabled aria-label="Kiste geöffnet, plus eins">
+      <span class="boostbadge" id="boostBadge" hidden>Schatzstunde 1,5×</span>
       <svg class="chest" viewBox="0 0 200 160" aria-hidden="true">
         <defs>
           <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c46a2b"/><stop offset="1" stop-color="#7a3512"/></linearGradient>
@@ -286,7 +318,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
         <div class="odd">
           <div class="lbl">Nächste Kiste</div>
           <div class="v" id="next">0,000727 %</div>
-          <div class="n">Immer gleich: 1 zu 137.500. Der Token wird nicht „fällig“, egal wie viele Kisten schon offen sind.</div>
+          <div class="n" id="nextN">1 zu 137.500. Der Token wird nicht „fällig“, egal wie viele Kisten schon offen sind.</div>
         </div>
         <div class="odd leg">
           <div class="lbl">Team bis jetzt</div>
@@ -339,6 +371,18 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   var SB_KEY = "sb_publishable_gHjfRR4dzXC3Rj_zcjWByg_GI_jrfzP";
 
   var P = 1 / 137500, LN1P = Math.log1p(-P);
+  // Quoten: normal 1 zu 137.500; Schatzstunde 1,5× (≈ 1 zu 91.667); manche Schatzstunden 2× (≈ 1 zu 68.750)
+  var MODES = {
+    normal: { col: "count",   p: 1 / 137500,   odds: "1 zu 137.500", label: "aus" },
+    x15:    { col: "count15", p: 1.5 / 137500, odds: "1 zu 91.667",  label: "1,5×" },
+    x2:     { col: "count2",  p: 2 / 137500,   odds: "1 zu 68.750",  label: "2×" }
+  };
+  var COLS = ["count", "count15", "count2"];
+  function zero() { return { count: 0, count15: 0, count2: 0 }; }
+  function fromRow(r) { var o = zero(); COLS.forEach(function (c) { o[c] = Math.max(0, Math.floor(Number(r && r[c]) || 0)); }); return o; }
+  function tot(o) { return o.count + o.count15 + o.count2; }
+  function same(a, b) { return !!a && !!b && COLS.every(function (c) { return a[c] === b[c]; }); }
+  function logNone(o) { return o.count * Math.log1p(-MODES.normal.p) + o.count15 * Math.log1p(-MODES.x15.p) + o.count2 * Math.log1p(-MODES.x2.p); }
   var ALPH = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   var $ = function (id) { return document.getElementById(id); };
   var fmt = new Intl.NumberFormat("de-DE");
@@ -420,13 +464,13 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     try {
       var codes = list.map(function (x) { return x.code; });
       var lobs = chk(await sb.from("lobbies").select("code,epoch,deleted").in("code", codes));
-      var pls = chk(await sb.from("players").select("lobby,name,count,epoch").in("lobby", codes));
+      var pls = chk(await sb.from("players").select("lobby,name,count,count15,count2,epoch").in("lobby", codes));
       if (gen !== listGen) return;
       var info = {};
       lobs.forEach(function (l) { info[l.code] = { epoch: epochOf(l), deleted: !!l.deleted, total: 0, names: {} }; });
       pls.forEach(function (r) {
         var i = info[r.lobby]; if (!i || epochOf(r) !== i.epoch) return;
-        var n = Math.max(0, Math.floor(r.count || 0)); i.total += n;
+        var n = tot(fromRow(r)); i.total += n;
         if (n > 0) i.names[(cleanName(r.name) || "?").toLowerCase()] = 1;
       });
       codes.forEach(function (code) {
@@ -521,14 +565,14 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   }
 
   async function loadPlayers(gen) {
-    var rows = chk(await sb.from("players").select("device,name,count,epoch").eq("lobby", S.code));
+    var rows = chk(await sb.from("players").select("device,name,count,count15,count2,epoch").eq("lobby", S.code));
     if (gen !== S.gen) return;
     var docs = {};
     rows.forEach(function (r) { docs[r.device] = r; });
     S.docs = docs; render();
   }
   async function loadLobby(gen) {
-    var rows = chk(await sb.from("lobbies").select("epoch,deleted").eq("code", S.code));
+    var rows = chk(await sb.from("lobbies").select("epoch,deleted,mode,mode_at").eq("code", S.code));
     if (gen !== S.gen) return;
     lobbyChanged(rows[0] || { deleted: true });
   }
@@ -536,22 +580,28 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
     var code = S.code;
     if (d.deleted) { forget(code); closeLobby(); showChoice(); toast("Die Lobby " + code + " wurde gelöscht"); return; }
     var e = epochOf(d);
-    if (e > S.epoch) { S.epoch = e; S.mine = 0; S.written = 0; render(); toast("Der Team-Zähler wurde auf 0 gesetzt"); }
+    if (e > S.epoch) { S.epoch = e; S.mine = zero(); S.written = zero(); render(); toast("Der Team-Zähler wurde auf 0 gesetzt"); }
+    var m = MODES[d.mode] ? d.mode : "normal";
+    if (m !== S.tmode) {
+      var was = S.tmode; S.tmode = m; S.tmodeAt = d.mode_at || null; render();
+      if (was) toast(m === "normal" ? "Schatzstunde beendet" : "Schatzstunde " + MODES[m].label + " ist an");
+    }
   }
 
   // Gibt eine Fehlermeldung zurück oder null, wenn die Lobby offen ist.
   async function enterLobby(code) {
     stopListening();
-    var lob = chk(await sb.from("lobbies").select("epoch,deleted").eq("code", code));
+    var lob = chk(await sb.from("lobbies").select("epoch,deleted,mode,mode_at").eq("code", code));
     if (!lob.length) return "Keine Lobby mit dem Code " + code + " gefunden. Tippfehler?";
     if (lob[0].deleted) return "Diese Lobby wurde gelöscht. Erstell einfach eine neue.";
     var epoch = epochOf(lob[0]);
-    var own = chk(await sb.from("players").select("count,epoch").eq("lobby", code).eq("device", devId));
+    var own = chk(await sb.from("players").select("count,count15,count2,epoch").eq("lobby", code).eq("device", devId));
 
     var gen = ++S.gen;
     S.code = code; S.epoch = epoch; S.docs = {}; S.nameDirty = false;
-    S.mine = 0; S.written = own.length ? null : 0;
-    if (own.length && epochOf(own[0]) === epoch) { S.mine = Math.max(0, own[0].count || 0); S.written = S.mine; }
+    S.mine = zero(); S.written = own.length ? null : zero();
+    if (own.length && epochOf(own[0]) === epoch) { S.mine = fromRow(own[0]); S.written = fromRow(own[0]); }
+    S.tmode = MODES[lob[0].mode] ? lob[0].mode : "normal"; S.tmodeAt = lob[0].mode_at || null;
     S.ready = true;
     keepAwake();
     lsSet("tkz-lobby", code); remember(code);
@@ -608,11 +658,11 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   function schedule() { clearTimeout(S.timer); S.timer = setTimeout(flush, 350); }
   async function flush() {
     if (!S.ready || S.inflight || !S.code) return;
-    if (S.mine === S.written && !S.nameDirty) return;
+    if (same(S.mine, S.written) && !S.nameDirty) return;
     S.inflight = true;
-    var v = S.mine, code = S.code, ep = S.epoch, gen = S.gen, nd = S.nameDirty; S.nameDirty = false;
+    var v = Object.assign({}, S.mine), code = S.code, ep = S.epoch, gen = S.gen, nd = S.nameDirty; S.nameDirty = false;
     try {
-      chk(await sb.from("players").upsert({ lobby: code, device: devId, name: S.name, count: v, epoch: ep, updated_at: new Date().toISOString() }));
+      chk(await sb.from("players").upsert({ lobby: code, device: devId, name: S.name, count: v.count, count15: v.count15, count2: v.count2, epoch: ep, updated_at: new Date().toISOString() }));
       if (gen === S.gen && ep === S.epoch) S.written = v;
       if (gen === S.gen && $("dot").className.indexOf("warn") >= 0 && S.chan) setStatus("live", "Live mit dem Team verbunden");
     } catch (e) {
@@ -621,13 +671,19 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       if (gen === S.gen) setStatus("warn", "Speichern hakt – versuche es gleich nochmal");
     } finally {
       S.inflight = false;
-      if (gen === S.gen && (S.mine !== S.written || S.nameDirty)) S.timer = setTimeout(flush, 2000);
+      if (gen === S.gen && (!same(S.mine, S.written) || S.nameDirty)) S.timer = setTimeout(flush, 2000);
     }
   }
 
   function add(k, ev) {
     if (!S.ready) return;
-    S.mine = Math.max(0, S.mine + k);
+    var col = MODES[S.tmode || "normal"].col;
+    if (k >= 0) S.mine[col] += k;
+    else {
+      // vertippt: zuerst bei der aktuellen Stufe abziehen, sonst bei der größten
+      var from = S.mine[col] > 0 ? col : COLS.slice().sort(function (a, b) { return S.mine[b] - S.mine[a]; })[0];
+      S.mine[from] = Math.max(0, S.mine[from] + k);
+    }
     render(); schedule();
     if (k > 0) {
       var t = $("tap"); t.classList.remove("hit"); void t.offsetWidth; t.classList.add("hit");
@@ -642,13 +698,14 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   function players() {
     var docs = {};
     Object.keys(S.docs).forEach(function (id) { if (epochOf(S.docs[id]) === S.epoch) docs[id] = S.docs[id]; });
-    if (S.ready) docs[devId] = { name: S.name, count: S.mine };
+    if (S.ready) docs[devId] = Object.assign({ name: S.name }, S.mine);
     var by = {};
     Object.keys(docs).forEach(function (id) {
       var d = docs[id] || {}, nm = cleanName(d.name) || "Unbekannt", key = nm.toLowerCase();
-      var c = Math.max(0, Math.floor(Number(d.count) || 0));
-      if (!by[key]) by[key] = { name: nm, count: 0, me: false };
-      by[key].count += c;
+      var o = fromRow(d);
+      if (!by[key]) by[key] = { name: nm, count: 0, boost: 0, m: zero(), me: false };
+      COLS.forEach(function (c) { by[key].m[c] += o[c]; });
+      by[key].count += tot(o); by[key].boost += o.count15 + o.count2;
       if (id === devId) { by[key].me = true; by[key].name = nm; }
     });
     return Object.keys(by).map(function (k) { return by[k]; }).filter(function (p) { return p.count > 0 || p.me; })
@@ -656,17 +713,28 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   }
 
   function render() {
-    var list = players(), total = 0, meTotal = 0;
-    list.forEach(function (p) { total += p.count; if (p.me) meTotal = p.count; });
+    var list = players(), total = 0, meTotal = 0, team = zero();
+    list.forEach(function (p) { total += p.count; if (p.me) meTotal = p.count; COLS.forEach(function (c) { team[c] += p.m[c]; }); });
+    var mode = MODES[S.tmode] ? S.tmode : "normal", M = MODES[mode], boosted = mode !== "normal";
+    $("tap").classList.toggle("boost", boosted);
+    $("boostBadge").hidden = !boosted; $("boostBadge").textContent = "Schatzstunde " + M.label;
+    Array.prototype.forEach.call(document.querySelectorAll(".seg-b"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === mode)); });
+    var since = S.tmodeAt ? new Date(S.tmodeAt) : null;
+    $("thState").textContent = boosted ? M.label + " an" + (since && !isNaN(since) ? " seit " + since.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr" : "") : "aus";
+    $("thState").className = "th-state" + (boosted ? " on" : "");
+    $("next").textContent = pct(M.p);
+    $("nextN").textContent = M.odds + (boosted ? " während der Schatzstunde " + M.label + "." : ".") + " Der Token wird nicht „fällig“, egal wie viele Kisten schon offen sind.";
+    var ln = logNone(team);
     $("total").textContent = fmt.format(total);
     $("mine").textContent = S.ready ? "Du: " + fmt.format(meTotal) + " · Tippen = +1 Kiste" : "Lade Lobby …";
-    var cum = -Math.expm1(total * LN1P);
+    var cum = -Math.expm1(ln);
     $("cum").textContent = pct(cum);
     $("fill").style.width = (cum * 100).toFixed(3) + "%";
     $("cumN").textContent = total === 0 ? "Noch keine Kiste gezählt."
-      : total < B50 ? "Bei " + fmt.format(total) + " Kisten. Noch " + fmt.format(B50 - total) + " bis zur 50-%-Marke."
-      : "Über der 50-%-Marke. Im Schnitt braucht man 137.500 Kisten.";
-    $("minus").disabled = !S.ready || S.mine <= 0;
+      : (cum < .5 ? "Bei " + fmt.format(total) + " Kisten. Noch " + fmt.format(Math.ceil((Math.log(.5) - ln) / Math.log1p(-M.p))) + (boosted ? " Schatzstunden-Kisten" : " Kisten") + " bis zur 50-%-Marke."
+        : "Über der 50-%-Marke bei " + fmt.format(total) + " Kisten.")
+        + (team.count15 + team.count2 ? " Davon " + fmt.format(team.count15 + team.count2) + " in Schatzstunden." : "");
+    $("minus").disabled = !S.ready || tot(S.mine) <= 0;
 
     var ul = $("players"); ul.textContent = "";
     if (total === 0) {
@@ -681,7 +749,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       if (p.me) { var sm = document.createElement("small"); sm.textContent = "du"; nm.appendChild(sm); }
       var right = document.createElement("span");
       var ct = document.createElement("div"); ct.className = "ct"; ct.textContent = fmt.format(p.count);
-      var pc = document.createElement("div"); pc.className = "pc"; pc.textContent = Math.round(p.count / total * 100) + " % vom Team";
+      var pc = document.createElement("div"); pc.className = "pc"; pc.textContent = Math.round(p.count / total * 100) + " % vom Team" + (p.boost ? " · " + fmt.format(p.boost) + " in Schatzst." : "");
       right.appendChild(ct); right.appendChild(pc);
       li.appendChild(bar); li.appendChild(rk); li.appendChild(nm); li.appendChild(right);
       ul.appendChild(li);
@@ -721,15 +789,30 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   });
   $("resetMeBtn").addEventListener("click", function () {
     ask("Deine Kisten in dieser Lobby auf 0 setzen? Die anderen behalten ihre.", "Ja, meine auf 0", async function () {
-      S.mine = 0; render(); schedule(); toast("Deine Kisten stehen auf 0");
+      S.mine = zero(); render(); schedule(); toast("Deine Kisten stehen auf 0");
     });
   });
   $("resetAllBtn").addEventListener("click", function () {
     ask("Den Zähler für das ganze Team auf 0 setzen? Das gilt für alle in der Lobby und lässt sich nicht rückgängig machen.", "Ja, alles auf 0", async function () {
       var e = S.epoch + 1;
       chk(await sb.from("lobbies").update({ epoch: e, updated_at: new Date().toISOString() }).eq("code", S.code));
-      S.epoch = e; S.mine = 0; S.written = 0; render();
+      S.epoch = e; S.mine = zero(); S.written = zero(); render();
       toast("Team-Zähler steht auf 0");
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".seg-b"), function (b) {
+    b.addEventListener("click", async function () {
+      var m = b.dataset.mode;
+      if (!S.ready || m === S.tmode) return;
+      var before = S.tmode, beforeAt = S.tmodeAt, now = new Date().toISOString();
+      S.tmode = m; S.tmodeAt = m === "normal" ? null : now; render();
+      try {
+        chk(await sb.from("lobbies").update({ mode: m, mode_at: S.tmodeAt, updated_at: now }).eq("code", S.code));
+        toast(m === "normal" ? "Schatzstunde für alle beendet" : "Schatzstunde " + MODES[m].label + " für alle an");
+      } catch (e) {
+        console.error(e); S.tmode = before; S.tmodeAt = beforeAt; render();
+        toast("Hat nicht geklappt – bitte nochmal versuchen");
+      }
     });
   });
   $("menuBtn").addEventListener("click", function () {
