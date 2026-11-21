@@ -415,6 +415,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
         <div class="rd-run"><span class="rd-dot"></span><strong id="rdSince">Session läuft</strong></div>
         <div><span class="rd-big" id="rdCount">0</span> <span class="rd-sub">Kisten in dieser Session</span></div>
         <div class="rd-sub" id="rdInfo"></div>
+        <div id="rdLive"></div>
         <div class="rd-pausebar">
           <button class="btn small ghost" id="rdPause" type="button" disabled><span>Kreativ-Pause starten</span></button>
         </div>
@@ -916,6 +917,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
       var ap = $("rdActivePauses");
       if (!ap.contains(document.activeElement) && !ap.querySelector("details[open]")) { ap.textContent = ""; ap.appendChild(pauseEditor(act)); }
       if (document.activeElement !== $("rdEditStart")) $("rdEditStart").value = hhmmOf(act.started_at);
+      var lv = $("rdLive"); lv.textContent = ""; lv.appendChild(reportEl(act, res, true));
     }
     // beendete Sessions
     var done = (S.rounds || []).filter(function (r) { return r.ended_at; });
@@ -994,10 +996,10 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
     });
   }
 
-  function reportEl(r, res) {
+  function reportEl(r, res, live) {
     var box = document.createElement("div"); box.className = "report";
     var play = playMs(r), pz = pauseMs(r);
-    var h3 = document.createElement("h3"); h3.textContent = "Auswertung " + dayTxt(r.started_at) + ", " + hm(r.started_at) + "–" + hm(r.ended_at) + " Uhr";
+    var h3 = document.createElement("h3"); h3.textContent = live ? "Live-Auswertung" : "Auswertung " + dayTxt(r.started_at) + ", " + hm(r.started_at) + "–" + hm(r.ended_at) + " Uhr";
     box.appendChild(h3);
     var kpis = document.createElement("div"); kpis.className = "kpis";
     [["Kisten gesamt", fmt.format(res.total)],
@@ -1027,7 +1029,13 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
       });
       wrap.appendChild(t); box.appendChild(wrap);
     } else {
-      var e = document.createElement("div"); e.className = "empty"; e.textContent = "In dieser Session wurden keine Kisten gezählt."; box.appendChild(e);
+      var e = document.createElement("div"); e.className = "empty"; e.textContent = live ? "Noch keine Kisten in dieser Session." : "In dieser Session wurden keine Kisten gezählt."; box.appendChild(e);
+    }
+    if (live) {
+      var ln = document.createElement("div"); ln.className = "rd-sub";
+      ln.textContent = "Aktualisiert sich von selbst, solange die Session läuft. Spielzeit ohne Kreativ-Pausen.";
+      box.appendChild(ln);
+      return box;
     }
     box.appendChild(pauseEditor(r));
     var note = document.createElement("div"); note.className = "rd-sub";
@@ -1357,7 +1365,7 @@ input[type=time]:focus-visible { outline: none; border-color: var(--rare); }
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121222328", newV = null;
+  var VERSION = "20261121222725", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
