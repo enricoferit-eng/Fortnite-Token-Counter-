@@ -189,11 +189,11 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
 .kpi .v { font-family: var(--display); font-size: 1.5rem; font-variant-numeric: tabular-nums; line-height: 1.1; margin-top: 2px; }
 @media (max-width: 440px) { .kpis { grid-template-columns: 1fr 1fr; } }
 .rtable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .9rem; }
-.rtable th { text-align: right; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 6px 6px; }
+.rtable th { text-align: right; font-size: .66rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); padding: 6px 4px; }
 .rtable th:first-child, .rtable td:first-child { text-align: left; }
-.rtable td { text-align: right; padding: 8px 6px; border-top: 1px solid var(--edge); }
+.rtable td { text-align: right; padding: 8px 4px; border-top: 1px solid var(--edge); }
 .rtable td.nm { font-weight: 700; max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rtable tr:first-child td.nm::before { content: "👑 "; }
+.rtable tr:nth-child(2) td.nm::before { content: "👑 "; }
 .rwrap { overflow-x: auto; }
 .report .row .btn { flex: 0 0 auto; }
 
@@ -841,7 +841,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
       var wrap = document.createElement("div"); wrap.className = "rwrap";
       var t = document.createElement("table"); t.className = "rtable";
       var head = document.createElement("tr");
-      ["Spieler", "Kisten", "Anteil", "Pro Std", "Schatzst."].forEach(function (h) { var th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
+      ["Spieler", "Kisten", "Anteil", "/Std", "Schatz"].forEach(function (h) { var th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
       t.appendChild(head);
       res.people.forEach(function (p) {
         var tr = document.createElement("tr");
@@ -1125,7 +1125,7 @@ input.code { text-transform: uppercase; letter-spacing: .25em; font-family: var(
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121201938", newV = null;
+  var VERSION = "20261121202100", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
