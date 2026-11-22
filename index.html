@@ -1194,6 +1194,39 @@ body.quake main { animation: quake .6s; }
     return box;
   }
 
+  // Start- und Endzeit einer beendeten Session/Runde nachträglich ändern (die Kisten bleiben gleich)
+  function timeEditor(r) {
+    var det = document.createElement("details"); det.className = "rd-more";
+    var sum = document.createElement("summary"); sum.textContent = "Start- oder Endzeit ändern"; det.appendChild(sum);
+    var form = document.createElement("div"); form.className = "rd-form rd-two";
+    var idS = "teS-" + r.id, idE = "teE-" + r.id;
+    form.innerHTML = '<label class="lbl" for="' + idS + '">Start</label><label class="lbl" for="' + idE + '">Ende</label>' +
+      '<input type="time" id="' + idS + '" value="' + hhmmOf(r.started_at) + '"><input type="time" id="' + idE + '" value="' + hhmmOf(r.ended_at) + '">';
+    var note = document.createElement("p"); note.className = "rd-sub"; note.style.margin = "0"; note.style.gridColumn = "1 / -1";
+    note.textContent = "Ändert nur die Zeit (Spielzeit, Kisten pro Stunde, Tagesübersicht). Die gezählten Kisten bleiben gleich. Liegt das Ende vor dem Start, gilt der nächste Tag.";
+    var save = mkBtn("btn small blue", "Zeiten speichern");
+    save.addEventListener("click", async function () {
+      var oldS = new Date(r.started_at);
+      var ns = timeAt(oldS, document.getElementById(idS).value), ne = timeAt(oldS, document.getElementById(idE).value);
+      if (!ns || !ne) { toast("Bitte Start und Ende eintragen"); return; }
+      if (ns - oldS > 12 * 36e5) ns.setDate(ns.getDate() - 1);       // gleiche Nacht behalten
+      if (oldS - ns > 12 * 36e5) ns.setDate(ns.getDate() + 1);
+      while (ne <= ns) ne.setDate(ne.getDate() + 1);
+      if (ne > new Date()) { toast("Das Ende kann nicht in der Zukunft liegen"); return; }
+      var clash = ofKind(kindOf(r)).filter(function (o) { return o.id !== r.id && o.ended_at && new Date(o.started_at) < ne && new Date(o.ended_at) > ns && !(new Date(o.started_at) >= ns && new Date(o.ended_at) <= ne); })[0];
+      if (clash) { toast("Überschneidet sich mit " + hm(clash.started_at) + "–" + hm(clash.ended_at) + " Uhr"); return; }
+      var act = activeOf(kindOf(r));
+      if (act && ne > new Date(act.started_at)) { toast("Das Ende liegt nach dem Start der laufenden " + (KINDS[kindOf(r)] || KINDS.session).one + " (" + hm(act.started_at) + " Uhr)"); return; }
+      try {
+        det.open = false;
+        await saveRound(r, { started_at: ns.toISOString(), ended_at: ne.toISOString() });
+        toast("Zeiten gespeichert: " + hm(ns) + "–" + hm(ne) + " Uhr");
+      } catch (e) { console.error(e); toast("Hat nicht geklappt – bitte nochmal versuchen"); }
+    });
+    form.appendChild(note); form.appendChild(save); det.appendChild(form);
+    return det;
+  }
+
   function reportEl(r, res, live) {
     var K = KINDS[kindOf(r)];
     var box = document.createElement("div"); box.className = "report";
@@ -1229,6 +1262,7 @@ body.quake main { animation: quake .6s; }
     }
     if (live) return box;
     box.appendChild(pauseEditor(r));
+    box.appendChild(timeEditor(r));
     var note = document.createElement("div"); note.className = "rd-sub";
     note.textContent = "Spielzeit = Dauer ohne Kreativ-Pausen. Token-Chance = so wahrscheinlich war mindestens ein Token bei diesen Kisten. Gestartet von " + (r.started_by || "?") + ", beendet von " + (r.ended_by || "?") + ".";
     box.appendChild(note);
@@ -1723,7 +1757,7 @@ body.quake main { animation: quake .6s; }
   document.addEventListener("visibilitychange", function () { if (document.hidden) flush(); else keepAwake(); });
 
   /* ---------- Neue Version erkennen ---------- */
-  var VERSION = "20261121233051", newV = null;
+  var VERSION = "20261122155357", newV = null;
   async function checkVersion() {
     try {
       var r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
